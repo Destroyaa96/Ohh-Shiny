@@ -13,14 +13,21 @@ import net.seto.ohhshiny.util.LuckPermsUtil
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Ohh Shiny command implementation
- * Implements /ohhshiny with subcommands
+ * Command handler for /ohhshiny and all its subcommands.
+ * 
+ * Available commands:
+ * - /ohhshiny set - Enter setup mode to create rewards
+ * - /ohhshiny remove - Enter remove mode to delete rewards
+ * - /ohhshiny list - View all active reward locations
+ * - /ohhshiny reload - Reload data from disk
+ * - /ohhshiny reset <player> - Reset a player's claim history
+ * - /ohhshiny clearall - Delete all rewards (requires confirmation)
  */
 object OhhShinyCommand {
     
-    // Track confirmation states for destructive commands
+    // Track pending confirmations for destructive commands to prevent accidental data loss
     private val pendingConfirmations: MutableMap<String, Long> = ConcurrentHashMap()
-    private const val CONFIRMATION_TIMEOUT = 30000L // 30 seconds
+    private const val CONFIRMATION_TIMEOUT = 30000L // Confirmations expire after 30 seconds
     
     fun register(root: LiteralArgumentBuilder<ServerCommandSource>) {
         
@@ -119,20 +126,20 @@ object OhhShinyCommand {
                     val currentTime = System.currentTimeMillis()
                     val confirmationKey = "${playerName}_clearall"
                     
-                    // Clean up old confirmations
+                    // Remove expired confirmations from the cache
                     pendingConfirmations.entries.removeIf { (_, time) -> 
                         currentTime - time > CONFIRMATION_TIMEOUT 
                     }
                     
                     if (pendingConfirmations.containsKey(confirmationKey)) {
-                        // Execute the clear
+                        // Second execution within 30 seconds - proceed with deletion
                         val server = context.source.server
                         val count = OhhShinyManager.clearAllData(server)
                         
                         context.source.sendFeedback({ OhhShinyMessages.allDataCleared(count) }, false)
                         pendingConfirmations.remove(confirmationKey)
                     } else {
-                        // Request confirmation
+                        // First execution - request confirmation by running the command again
                         pendingConfirmations[confirmationKey] = currentTime
                         context.source.sendFeedback({ 
                             OhhShinyMessages.confirmationRequired("/ohhshiny clearall") 

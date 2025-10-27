@@ -9,18 +9,22 @@ import net.seto.ohhshiny.util.LuckPermsUtil
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 
 /**
- * Event handler for Ohh Shiny interactions
- * Handles right-click events for setup, removal, and claiming
+ * Handles all player interactions with blocks for Ohh Shiny functionality.
+ * 
+ * Intercepts right-click events to:
+ * - Allow admins in setup mode to create rewards
+ * - Allow admins in remove mode to delete rewards  
+ * - Allow players to claim rewards at marked locations
  */
 object OhhShinyEventHandler {
     
     /**
-     * Registers all Ohh Shiny event handlers
+     * Registers all event listeners needed for Ohh Shiny functionality.
      */
     fun register() {
-        // Register UseBlock event for right-click handling
+        // Listen for block right-clicks to handle reward creation and claiming
         UseBlockCallback.EVENT.register { player, world, hand, hitResult ->
-            // Only process main hand interactions and server-side only
+            // Only process main hand interactions, and only on the server (not client)
             if (hand.name == "MAIN_HAND" && !world.isClient && player is ServerPlayerEntity) {
                 handleBlockUse(player, hitResult)
             } else {
@@ -28,14 +32,19 @@ object OhhShinyEventHandler {
             }
         }
         
-        // Register player disconnect event to clean up mode tracking
+        // Clean up mode tracking when players disconnect
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
             OhhShinyManager.onPlayerDisconnect(handler.player.uuid)
         }
     }
     
     /**
-     * Handles block use (right-click) events for Ohh Shiny functionality
+     * Processes block right-click events based on player mode and permissions.
+     * 
+     * Priority order:
+     * 1. Setup mode (admin creating rewards)
+     * 2. Remove mode (admin deleting rewards)
+     * 3. Claim mode (player claiming rewards)
      */
     private fun handleBlockUse(
         player: ServerPlayerEntity, 
@@ -45,9 +54,9 @@ object OhhShinyEventHandler {
         val position = hitResult.blockPos
         val dimension = world.registryKey
         
-        // Check if player is in setup mode
+        // Priority 1: Admin in setup mode creates a reward here
         if (OhhShinyManager.isInSetupMode(player)) {
-            // Verify permission (double-check)
+            // Double-check permissions for security
             if (!LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OHHSHINY_SET)) {
                 player.sendMessage(OhhShinyMessages.noPermission(LuckPermsUtil.Permissions.OHHSHINY_SET), false)
                 return ActionResult.FAIL
@@ -59,9 +68,9 @@ object OhhShinyEventHandler {
             return if (success) ActionResult.SUCCESS else ActionResult.FAIL
         }
         
-        // Check if player is in remove mode
+        // Priority 2: Admin in remove mode deletes a reward here
         if (OhhShinyManager.isInRemoveMode(player)) {
-            // Verify permission (double-check)
+            // Double-check permissions for security
             if (!LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OHHSHINY_REMOVE)) {
                 player.sendMessage(OhhShinyMessages.noPermission(LuckPermsUtil.Permissions.OHHSHINY_REMOVE), false)
                 return ActionResult.FAIL
@@ -72,16 +81,16 @@ object OhhShinyEventHandler {
             return if (success) ActionResult.SUCCESS else ActionResult.FAIL
         }
         
-        // Check if this location has Ohh Shiny and player can claim it
+        // Priority 3: Player tries to claim a reward here
         if (LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OHHSHINY_CLAIM)) {
             val success = OhhShinyManager.claimLoot(player, dimension, position)
             
-            // If we successfully claimed loot, return SUCCESS to prevent other block interactions
-            // If there was no loot here, return PASS to allow normal block interactions
+            // SUCCESS cancels the event and prevents normal block interactions (like opening chests)
+            // PASS allows normal block interactions to continue if there was no reward here
             return if (success) ActionResult.SUCCESS else ActionResult.PASS
         }
         
-        // Not in any mode and no claim permission, allow normal block interactions
+        // No special handling needed - allow normal Minecraft behavior
         return ActionResult.PASS
     }
 }

@@ -12,8 +12,10 @@ import java.io.FileReader
 import java.io.FileWriter
 
 /**
- * JSON file storage for Ohh Shiny data
- * Data is saved in config/ohhshiny/ohhshiny.json
+ * Singleton object that manages persistent storage of all Ohh Shiny rewards.
+ * 
+ * Data is stored in JSON format at: config/ohhshiny/ohhshiny.json
+ * The file is automatically created on first use and updated whenever rewards are added/removed.
  */
 object OhhShinyState {
     private val logger = LoggerFactory.getLogger("ohhshiny")
@@ -28,7 +30,7 @@ object OhhShinyState {
     }
     
     /**
-     * Adds a new Ohh Shiny entry
+     * Adds a new reward entry and immediately saves to disk.
      */
     fun addLootEntry(entry: OhhShinyEntry) {
         lootEntries[entry.getLocationKey()] = entry
@@ -36,7 +38,8 @@ object OhhShinyState {
     }
     
     /**
-     * Removes an Ohh Shiny entry by location key
+     * Removes a reward entry by its location and saves to disk if found.
+     * @return The removed entry, or null if no reward existed at that location
      */
     fun removeLootEntry(dimension: RegistryKey<World>, position: BlockPos): OhhShinyEntry? {
         val key = "${dimension.value}|${position.x}|${position.y}|${position.z}"
@@ -48,7 +51,8 @@ object OhhShinyState {
     }
     
     /**
-     * Gets an Ohh Shiny entry by location
+     * Retrieves a reward entry by its location.
+     * @return The entry if one exists at that location, otherwise null
      */
     fun getLootEntry(dimension: RegistryKey<World>, position: BlockPos): OhhShinyEntry? {
         val key = "${dimension.value}|${position.x}|${position.y}|${position.z}"
@@ -56,14 +60,14 @@ object OhhShinyState {
     }
     
     /**
-     * Gets all loot entries
+     * Returns a copy of all reward entries (keyed by location string).
      */
     fun getAllLootEntries(): Map<String, OhhShinyEntry> {
         return lootEntries.toMap()
     }
     
     /**
-     * Removes all loot entries
+     * Deletes all reward entries and clears the storage file.
      */
     fun clearAllEntries() {
         lootEntries.clear()
@@ -71,25 +75,30 @@ object OhhShinyState {
     }
     
     /**
-     * Gets the count of loot entries
+     * Returns the total number of active reward locations.
      */
     fun getEntryCount(): Int = lootEntries.size
     
     /**
-     * Save changes to disk when entries are modified (used by resetPlayerClaims)
+     * Marks data as modified and triggers a save to disk.
+     * Used when claim data is updated without adding/removing entries.
      */
     fun markDirty() {
         saveToDisk()
     }
     
     /**
-     * Reloads all data from disk, discarding current in-memory data
+     * Discards in-memory data and reloads everything from the storage file.
      */
     fun reload(server: MinecraftServer? = null) {
         lootEntries.clear()
         loadFromDisk(server)
     }
     
+    /**
+     * Loads reward data from the JSON file on disk.
+     * Requires a server instance to resolve world references.
+     */
     private fun loadFromDisk(server: MinecraftServer? = null) {
         if (!storageFile.exists()) return
         
@@ -102,14 +111,14 @@ object OhhShinyState {
                 try {
                     val entryObj = entryElement.asJsonObject
                     
-                    // We need the server to get the world, but at init time we don't have it
-                    // Skip loading if no server is available
+                    // World instances are needed to deserialize ItemStacks, but aren't available during mod init
+                    // Data will be loaded on the first /ohhshiny reload command after server starts
                     if (server == null) {
                         logger.warn("Cannot load Ohh Shiny entries without server context")
                         continue
                     }
                     
-                    // Get the dimension from the JSON
+                    // Resolve the dimension to get the world instance
                     val dimensionStr = entryObj.get("dimension").asString
                     val dimensionId = net.minecraft.util.Identifier.tryParse(dimensionStr)
                     val dimensionKey = net.minecraft.registry.RegistryKey.of(
@@ -140,6 +149,9 @@ object OhhShinyState {
         }
     }
     
+    /**
+     * Writes all reward data to the JSON file on disk.
+     */
     private fun saveToDisk() {
         try {
             val jsonObject = JsonObject()
