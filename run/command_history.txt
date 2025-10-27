@@ -1,0 +1,8 @@
+/give Player261 minecraft:acacia_boat[minecraft:custom_data={Test:1b}]
+/pokeloot set
+/pokeloot remove
+/pokeloot clearall
+/pokeloot set
+/give @a acacia_button[custom_name=[{"text":"T","italic":false,"color":"#00ffff"},{"text":"H","italic":false,"color":"#14ebeb"},{"text":"I","italic":false,"color":"#27d8d8"},{"text":"S","italic":false,"color":"#3bc4c4"},{"text":" ","italic":false,"color":"
+/give Player529 minecraft:command_block
+/pokeloot set
