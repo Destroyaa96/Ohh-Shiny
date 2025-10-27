@@ -75,5 +75,6 @@ object LuckPermsUtil {
         const val OHHSHINY_RESET = "ohhshiny.command.reset"
         const val OHHSHINY_CLEARALL = "ohhshiny.command.clearall"
         const val OHHSHINY_CLAIM = "ohhshiny.claim"
+        const val OHHSHINY_TELEPORT = "ohhshiny.command.teleport"
     }
 }

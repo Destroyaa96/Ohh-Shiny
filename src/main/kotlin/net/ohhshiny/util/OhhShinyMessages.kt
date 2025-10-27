@@ -1,6 +1,9 @@
 package net.seto.ohhshiny.util
 
 import net.minecraft.item.ItemStack
+import net.minecraft.server.command.ServerCommandSource
+import net.minecraft.text.ClickEvent
+import net.minecraft.text.HoverEvent
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.math.BlockPos
@@ -74,9 +77,34 @@ object OhhShinyMessages {
             .formatted(Formatting.GOLD)
     }
     
-    fun lootListEntry(position: BlockPos, dimension: RegistryKey<World>, itemName: String, claimedCount: Int): Text {
-        return Text.literal("• [${position.x}, ${position.y}, ${position.z}] in ${dimension.value}: ${itemName} (claimed by ${claimedCount} players)")
-            .formatted(Formatting.WHITE)
+    fun lootListEntry(position: BlockPos, dimension: RegistryKey<World>, itemName: String, claimedCount: Int, source: ServerCommandSource): Text {
+        val coordText = "[${position.x}, ${position.y}, ${position.z}]"
+        val hasTeleportPerm = LuckPermsUtil.hasPermission(source, LuckPermsUtil.Permissions.OHHSHINY_TELEPORT)
+        
+        val message = Text.literal("• ")
+        
+        if (hasTeleportPerm) {
+            // Make coordinates clickable with teleport command
+            val teleportY = position.y + 2
+            val teleportCommand = "/execute in ${dimension.value} run tp @s ${position.x} ${teleportY} ${position.z}"
+            
+            val clickableCoords = Text.literal(coordText)
+                .formatted(Formatting.AQUA, Formatting.UNDERLINE)
+                .styled { style ->
+                    style
+                        .withClickEvent(ClickEvent(ClickEvent.Action.RUN_COMMAND, teleportCommand))
+                        .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click to teleport").formatted(Formatting.YELLOW)))
+                }
+            
+            message.append(clickableCoords)
+        } else {
+            // No teleport permission - display coordinates normally
+            message.append(Text.literal(coordText).formatted(Formatting.WHITE))
+        }
+        
+        message.append(Text.literal(" in ${dimension.value}: ${itemName} (claimed by ${claimedCount} players)").formatted(Formatting.WHITE))
+        
+        return message
     }
     
     fun noLootEntries(): Text {

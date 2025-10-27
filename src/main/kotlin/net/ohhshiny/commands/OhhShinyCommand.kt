@@ -70,7 +70,7 @@ object OhhShinyCommand {
                             val itemName = entry.rewardItem.name.string
                             val claimedCount = entry.claimedPlayers.size
                             context.source.sendFeedback({ 
-                                OhhShinyMessages.lootListEntry(entry.position, entry.dimension, itemName, claimedCount) 
+                                OhhShinyMessages.lootListEntry(entry.position, entry.dimension, itemName, claimedCount, context.source) 
                             }, false)
                         }
                     }
