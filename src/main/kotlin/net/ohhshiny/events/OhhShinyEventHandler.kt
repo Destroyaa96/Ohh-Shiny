@@ -44,7 +44,7 @@ object OhhShinyEventHandler {
         
         // Protect Ohh Shiny blocks from being broken
         // Using BEFORE event to cancel the break before it happens
-        PlayerBlockBreakEvents.BEFORE.register(PlayerBlockBreakEvents.Before { world, player, pos, state, blockEntity ->
+        PlayerBlockBreakEvents.BEFORE.register { world, player, pos, state, blockEntity ->
             // Only check on server side with actual players
             if (!world.isClient && player is ServerPlayerEntity) {
                 // Check if this block has an Ohh Shiny entry
@@ -54,12 +54,12 @@ object OhhShinyEventHandler {
                     // Block has Ohh Shiny data - prevent breaking and notify player
                     player.sendMessage(OhhShinyMessages.blockProtected(), false)
                     logger.info("Blocked player ${player.nameForScoreboard} from breaking Ohh Shiny at $pos")
-                    return@Before true // Return true to CANCEL the break
+                    return@register false // Return false to CANCEL the break
                 }
             }
             
-            false // Return false to ALLOW the break
-        })
+            true // Return true to ALLOW the break
+        }
     }
     
     /**
