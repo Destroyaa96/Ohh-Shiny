@@ -1,12 +1,13 @@
-package net.seto.ohhshiny
+package net.ohhshiny
 
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.command.CommandManager.literal
-import net.seto.ohhshiny.commands.OhhShinyCommand
-import net.seto.ohhshiny.events.OhhShinyEventHandler
-import net.seto.ohhshiny.events.OhhShinyTickHandler
-import net.seto.ohhshiny.util.LuckPermsUtil
+import net.ohhshiny.commands.OhhShinyCommand
+import net.ohhshiny.events.OhhShinyEventHandler
+import net.ohhshiny.events.OhhShinyTickHandler
+import net.ohhshiny.util.LuckPermsUtil
 import org.slf4j.LoggerFactory
 
 /**
@@ -25,6 +26,12 @@ object OhhShiny : ModInitializer {
         // Register event handlers for player interactions and particle effects
         OhhShinyEventHandler.register()
         OhhShinyTickHandler.register()
+        
+        // Auto-load data when server starts
+        ServerLifecycleEvents.SERVER_STARTED.register { server ->
+            LOGGER.info("Server started, loading Ohh Shiny data...")
+            OhhShinyManager.reloadData(server)
+        }
         
         // Register the /ohhshiny command with permission checks
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->

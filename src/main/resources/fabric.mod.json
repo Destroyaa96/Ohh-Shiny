@@ -18,7 +18,7 @@
 	"entrypoints": {
 		"main": [
 			{
-				"value": "net.seto.ohhshiny.OhhShiny",
+				"value": "net.ohhshiny.OhhShiny",
 				"adapter": "kotlin"
 			}
 		]

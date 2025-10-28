@@ -1,4 +1,4 @@
-package net.seto.ohhshiny.data
+package net.ohhshiny.data
 
 import com.google.gson.*
 import net.fabricmc.loader.api.FabricLoader

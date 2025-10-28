@@ -1,4 +1,4 @@
-package net.seto.ohhshiny.util
+package net.ohhshiny.util
 
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider

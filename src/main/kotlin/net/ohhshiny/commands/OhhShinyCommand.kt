@@ -1,4 +1,4 @@
-package net.seto.ohhshiny.commands
+package net.ohhshiny.commands
 
 import com.mojang.authlib.GameProfile
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
@@ -14,9 +14,9 @@ import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
-import net.seto.ohhshiny.OhhShinyManager
-import net.seto.ohhshiny.util.OhhShinyMessages
-import net.seto.ohhshiny.util.LuckPermsUtil
+import net.ohhshiny.OhhShinyManager
+import net.ohhshiny.util.OhhShinyMessages
+import net.ohhshiny.util.LuckPermsUtil
 import java.util.concurrent.ConcurrentHashMap
 
 /**

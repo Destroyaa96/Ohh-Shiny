@@ -1,4 +1,4 @@
-package net.seto.ohhshiny.util
+package net.ohhshiny.util
 
 import net.minecraft.item.ItemStack
 import net.minecraft.server.command.ServerCommandSource

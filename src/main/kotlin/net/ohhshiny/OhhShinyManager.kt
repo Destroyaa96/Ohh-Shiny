@@ -1,4 +1,4 @@
-package net.seto.ohhshiny
+package net.ohhshiny
 
 import net.minecraft.item.ItemStack
 import net.minecraft.registry.RegistryKey
@@ -6,10 +6,10 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.seto.ohhshiny.data.OhhShinyEntry
-import net.seto.ohhshiny.data.OhhShinyState
-import net.seto.ohhshiny.util.OhhShinyMessages
-import net.seto.ohhshiny.util.OhhShinyParticles
+import net.ohhshiny.data.OhhShinyEntry
+import net.ohhshiny.data.OhhShinyState
+import net.ohhshiny.util.OhhShinyMessages
+import net.ohhshiny.util.OhhShinyParticles
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap

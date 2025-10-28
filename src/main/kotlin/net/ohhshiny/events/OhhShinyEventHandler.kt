@@ -1,14 +1,16 @@
-package net.seto.ohhshiny.events
+package net.ohhshiny.events
 
+import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.ActionResult
-import net.seto.ohhshiny.OhhShinyManager
-import net.seto.ohhshiny.util.OhhShinyMessages
-import net.seto.ohhshiny.util.LuckPermsUtil
+import net.ohhshiny.OhhShinyManager
+import net.ohhshiny.util.OhhShinyMessages
+import net.ohhshiny.util.LuckPermsUtil
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import org.slf4j.LoggerFactory
+import net.ohhshiny.util.OhhShinyParticles
 
 /**
  * Handles all player interactions with blocks for Ohh Shiny functionality.
@@ -37,14 +39,50 @@ object OhhShinyEventHandler {
             }
         }
         
+        // Spawn particles when players join to ensure they see them immediately
+        ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
+            val player = handler.player
+            val server = player.server
+            
+            // Spawn particles for all nearby unclaimed rewards when player joins
+            server.execute {
+                try {
+                    val allEntries = OhhShinyManager.getAllLootEntries(server)
+                    val playerPos = player.blockPos
+                    val playerWorld = player.serverWorld
+                    
+                    for (entry in allEntries.values) {
+                        try {
+                            // Only spawn particles for rewards in the same dimension
+                            if (entry.world != playerWorld) continue
+                            
+                            // Only spawn particles if player hasn't claimed this reward
+                            if (entry.hasPlayerClaimed(player.uuid)) continue
+                            
+                            // Only spawn particles if player is within 16 blocks
+                            val distance = playerPos.getSquaredDistance(entry.position)
+                            if (distance <= 16.0 * 16.0) {
+                                OhhShinyParticles.spawnParticlesAt(entry)
+                            }
+                        } catch (e: Exception) {
+                            // Silently skip rewards in unloaded chunks
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.error("Error spawning particles on player login", e)
+                }
+            }
+        }
+        
         // Clean up mode tracking when players disconnect
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
             OhhShinyManager.onPlayerDisconnect(handler.player.uuid)
         }
         
         // Protect Ohh Shiny blocks from being broken
-        // Using BEFORE event to cancel the break before it happens
-        PlayerBlockBreakEvents.BEFORE.register { world, player, pos, state, blockEntity ->
+        // Using AttackBlockCallback which fires when player starts breaking (left-click)
+        // This prevents the break from even starting, avoiding client desync
+        AttackBlockCallback.EVENT.register { player, world, hand, pos, direction ->
             // Only check on server side with actual players
             if (!world.isClient && player is ServerPlayerEntity) {
                 // Check if this block has an Ohh Shiny entry
@@ -53,12 +91,12 @@ object OhhShinyEventHandler {
                 if (entry != null) {
                     // Block has Ohh Shiny data - prevent breaking and notify player
                     player.sendMessage(OhhShinyMessages.blockProtected(), false)
-                    logger.info("Blocked player ${player.nameForScoreboard} from breaking Ohh Shiny at $pos")
-                    return@register false // Return false to CANCEL the break
+                    logger.info("Blocked player ${player.nameForScoreboard} from attacking Ohh Shiny at $pos")
+                    return@register ActionResult.FAIL // FAIL cancels the attack
                 }
             }
             
-            true // Return true to ALLOW the break
+            ActionResult.PASS // PASS allows normal block interaction
         }
     }
     
