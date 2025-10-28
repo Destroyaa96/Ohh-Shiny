@@ -224,28 +224,8 @@ For bug reports, feature requests, or questions, please open an issue on the pro
 - Persistent storage
 - Multi-dimension support
 
-## Technical Details
-
-### Architecture
-
-- **Language**: Kotlin 2.2.0
-- **Minecraft Version**: 1.21.1
-- **Loader**: Fabric
-- **API Dependencies**: Fabric API, Fabric Language Kotlin
-
-### Key Components
-
-- **OhhShiny**: Main mod initializer
-- **OhhShinyManager**: Central logic manager for all operations
-- **OhhShinyState**: Persistent data storage manager
-- **OhhShinyEventHandler**: Block interaction event processor
-- **OhhShinyTickHandler**: Particle effect tick handler
-- **OhhShinyCommand**: Command registration and execution
-- **LuckPermsUtil**: Permission checking utility
-
 ### Performance
 
-- Minimal overhead: Uses event-driven architecture
 - Efficient storage: JSON-based with automatic saving
 - Thread-safe: Uses concurrent data structures where needed
 - Optimized particle effects: Runs on server tick with distance checks
@@ -276,19 +256,3 @@ For bug reports, feature requests, or questions, please open an issue on the pro
 - Ensure the `ohhshiny.json` file exists and is not corrupted
 - Check that the mod loaded correctly during startup
 - Verify no other mods are interfering with the config directory
-
-### Custom texture items not showing
-- Custom textures require a resource pack on the client side (for player heads)
-- The textures are pulled from Minecraft's texture servers
-- Ensure players have "Allow Server Resource Packs" enabled
-
-## Future Development Ideas
-
-- Web-based admin panel for managing rewards
-- Reward categories and rarities
-- Sound effects alongside particle effects
-- Cooldown system for re-claimable rewards
-- Statistics tracking for most popular rewards
-- Integration with economy plugins
-- Random reward selection from a pool
-- Time-limited rewards (event-based)
