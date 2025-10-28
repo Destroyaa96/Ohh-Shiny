@@ -44,3 +44,6 @@ run/
 # JVM Crash logs
 hs_err_pid*
 replay_*.txt
+
+# AI Comment Generation
+WARP.md
