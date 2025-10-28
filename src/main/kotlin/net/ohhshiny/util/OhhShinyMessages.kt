@@ -142,4 +142,9 @@ object OhhShinyMessages {
         return Text.literal("Remove mode disabled")
             .formatted(Formatting.GRAY)
     }
+    
+    fun blockProtected(): Text {
+        return Text.literal("This block is protected and cannot be broken!")
+            .formatted(Formatting.RED)
+    }
 }

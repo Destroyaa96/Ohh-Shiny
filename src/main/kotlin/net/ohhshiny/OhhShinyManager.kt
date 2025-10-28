@@ -235,6 +235,14 @@ object OhhShinyManager {
     }
     
     /**
+     * Retrieves a specific loot entry at the given location.
+     * Used for block protection checks.
+     */
+    fun getLootEntry(server: MinecraftServer, dimension: RegistryKey<World>, position: BlockPos): OhhShinyEntry? {
+        return getState(server).getLootEntry(dimension, position)
+    }
+    
+    /**
      * Retrieves all reward entries for display in the list command.
      */
     fun getAllLootEntries(server: MinecraftServer): Map<String, OhhShinyEntry> {

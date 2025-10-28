@@ -1,5 +1,6 @@
 package net.seto.ohhshiny.events
 
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.ActionResult
@@ -7,6 +8,7 @@ import net.seto.ohhshiny.OhhShinyManager
 import net.seto.ohhshiny.util.OhhShinyMessages
 import net.seto.ohhshiny.util.LuckPermsUtil
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
+import org.slf4j.LoggerFactory
 
 /**
  * Handles all player interactions with blocks for Ohh Shiny functionality.
@@ -15,8 +17,11 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
  * - Allow admins in setup mode to create rewards
  * - Allow admins in remove mode to delete rewards  
  * - Allow players to claim rewards at marked locations
+ * 
+ * Also protects Ohh Shiny blocks from being broken.
  */
 object OhhShinyEventHandler {
+    private val logger = LoggerFactory.getLogger("ohhshiny")
     
     /**
      * Registers all event listeners needed for Ohh Shiny functionality.
@@ -36,6 +41,25 @@ object OhhShinyEventHandler {
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
             OhhShinyManager.onPlayerDisconnect(handler.player.uuid)
         }
+        
+        // Protect Ohh Shiny blocks from being broken
+        // Using BEFORE event to cancel the break before it happens
+        PlayerBlockBreakEvents.BEFORE.register(PlayerBlockBreakEvents.Before { world, player, pos, state, blockEntity ->
+            // Only check on server side with actual players
+            if (!world.isClient && player is ServerPlayerEntity) {
+                // Check if this block has an Ohh Shiny entry
+                val entry = OhhShinyManager.getLootEntry(player.server, world.registryKey, pos)
+                
+                if (entry != null) {
+                    // Block has Ohh Shiny data - prevent breaking and notify player
+                    player.sendMessage(OhhShinyMessages.blockProtected(), false)
+                    logger.info("Blocked player ${player.nameForScoreboard} from breaking Ohh Shiny at $pos")
+                    return@Before true // Return true to CANCEL the break
+                }
+            }
+            
+            false // Return false to ALLOW the break
+        })
     }
     
     /**
