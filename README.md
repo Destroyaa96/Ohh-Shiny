@@ -165,40 +165,6 @@ Each reward entry contains:
 
 You can manually edit this file, but remember to run `/ohhshiny reload` afterward to apply changes.
 
-## Building from Source
-
-### Prerequisites
-- JDK 21 or newer
-- Git (optional)
-
-### Build Steps
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd ohhshiny
-```
-
-2. Build the mod:
-```bash
-./gradlew build
-```
-(On Windows, use `gradlew.bat build`)
-
-3. Find the compiled JAR in:
-```
-build/libs/ohh-shiny-1.0.0.jar
-```
-
-### Development
-
-To set up a development environment:
-```bash
-./gradlew genSources
-```
-
-This generates Minecraft source files for reference while coding.
-
 ## License
 
 This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
@@ -213,6 +179,13 @@ This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE
 For bug reports, feature requests, or questions, please open an issue on the project repository.
 
 ## Version History
+
+### 1.1.0
+- **Fixed**: Corrected package structure.
+- **Fixed**: Particles now persist across server restarts and player relogs
+- **Added**: Automatic data loading on server start (no manual reload required)
+- **Improved**: Rainbow particle effects now cycle smoothly over 7 seconds
+- **Improved**: Particles only render for nearby players who haven't claimed the reward
 
 ### 1.0.0
 - Initial release
@@ -256,3 +229,9 @@ For bug reports, feature requests, or questions, please open an issue on the pro
 - Ensure the `ohhshiny.json` file exists and is not corrupted
 - Check that the mod loaded correctly during startup
 - Verify no other mods are interfering with the config directory
+
+### Particles not showing
+- Particles automatically load on server start (as of v1.1.0)
+- Particles only appear for players who haven't claimed the reward
+- Particles only render within 16 blocks of a player
+- Try running `/ohhshiny reload` if particles still don't appear
