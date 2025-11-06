@@ -56,9 +56,9 @@ dependencies {
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
     
-    // TextPlaceholderAPI - optional (latest version for 1.21.1)
-    modCompileOnly("eu.pb4:placeholder-api:2.8.1+1.21.10")
-    modRuntimeOnly("eu.pb4:placeholder-api:2.8.1+1.21.10")
+    // TextPlaceholderAPI - optional (version 2.4.2+1.21)
+    modCompileOnly("eu.pb4:placeholder-api:2.4.2+1.21")
+    modRuntimeOnly("eu.pb4:placeholder-api:2.4.2+1.21")
     
     // LuckPerms API - optional
     modCompileOnly("net.luckperms:api:5.4")
