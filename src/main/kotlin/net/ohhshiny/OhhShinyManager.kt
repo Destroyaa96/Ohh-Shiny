@@ -203,7 +203,7 @@ object OhhShinyManager {
         
         // Prevent players from claiming the same reward twice
         if (entry.hasPlayerClaimed(player.uuid)) {
-            player.sendMessage(OhhShinyMessages.alreadyClaimed(), false)
+            player.sendMessage(OhhShinyMessages.alreadyClaimed(player), false)
             return false
         }
         
@@ -223,7 +223,7 @@ object OhhShinyManager {
         state.markDirty()
         
         // Notify the player of their reward
-        player.sendMessage(OhhShinyMessages.lootClaimed(entry.rewardItem), false)
+        player.sendMessage(OhhShinyMessages.lootClaimed(entry.rewardItem, player), false)
         
         // Log the claim for server records
         val itemName = entry.rewardItem.name.string

@@ -90,7 +90,7 @@ object OhhShinyEventHandler {
                 
                 if (entry != null) {
                     // Block has Ohh Shiny data - prevent breaking and notify player
-                    player.sendMessage(OhhShinyMessages.blockProtected(), false)
+                    player.sendMessage(OhhShinyMessages.blockProtected(player), false)
                     logger.info("Blocked player ${player.nameForScoreboard} from attacking Ohh Shiny at $pos")
                     return@register ActionResult.FAIL // FAIL cancels the attack
                 }

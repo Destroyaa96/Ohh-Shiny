@@ -154,6 +154,19 @@ object OhhShinyCommand {
                 }
         )
         
+        // /ohhshiny reloadlang - Reload language file
+        root.then(
+            literal("reloadlang")
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_RELOAD) }
+                .executes { context ->
+                    net.ohhshiny.util.LangManager.reload()
+                    context.source.sendFeedback({ 
+                        Text.literal("Language file reloaded").formatted(net.minecraft.util.Formatting.GREEN) 
+                    }, false)
+                    1
+                }
+        )
+        
         // /ohhshiny reset <player> - Reset player's claims
         root.then(
             literal("reset")
@@ -165,7 +178,7 @@ object OhhShinyCommand {
                             val targetProfiles = GameProfileArgumentType.getProfileArgument(context, "target")
                             
                             if (targetProfiles.isEmpty()) {
-                                context.source.sendFeedback({ Text.literal("No valid player found").formatted(net.minecraft.util.Formatting.RED) }, false)
+                                context.source.sendFeedback({ OhhShinyMessages.noPlayerFound() }, false)
                                 return@executes 0
                             }
                             
@@ -242,9 +255,7 @@ object OhhShinyCommand {
             player.dropItem(chestItem, false)
         }
         
-        source.sendFeedback({ 
-            Text.literal("Given $name").formatted(net.minecraft.util.Formatting.GREEN) 
-        }, false)
+        source.sendFeedback({ OhhShinyMessages.itemGiven(name) }, false)
     }
     
     /**
@@ -275,9 +286,7 @@ object OhhShinyCommand {
             player.dropItem(pokeballItem, false)
         }
         
-        source.sendFeedback({ 
-            Text.literal("Given $name").formatted(net.minecraft.util.Formatting.GREEN) 
-        }, false)
+        source.sendFeedback({ OhhShinyMessages.itemGiven(name) }, false)
     }
     
     

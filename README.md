@@ -20,7 +20,8 @@ A Minecraft Fabric mod that allows server administrators to create interactive, 
 - **Fabric API**: Required
 - **Fabric Language Kotlin**: Required
 - **Java**: 21 or newer
-- **LuckPerms**: Optional but recommended for permission management
+- **LuckPerms**: Optional (for advanced permission management)
+- **TextPlaceholderAPI**: Optional (for text formatting in language files)
 
 ## Installation
 
@@ -29,8 +30,9 @@ A Minecraft Fabric mod that allows server administrators to create interactive, 
 3. Download and install [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin)
 4. Download the Ohh Shiny mod JAR file
 5. Place the JAR file in your `mods` folder
-6. (Optional) Install [LuckPerms](https://luckperms.net/) for permission management
-7. Start your server
+6. (Optional) Install [LuckPerms](https://luckperms.net/) for advanced permission management
+7. (Optional) Install [TextPlaceholderAPI](https://modrinth.com/mod/placeholder-api) for text formatting
+8. Start your server
 
 ## Usage
 
@@ -91,6 +93,11 @@ Reloads all reward data from the configuration file on disk.
 - Useful for applying manual edits or recovering from errors
 - Shows the number of rewards loaded
 
+#### `/ohhshiny reloadlang`
+Reloads the language file (`lang.json`) without restarting the server.
+- Apply message customizations immediately
+- No server restart required
+
 #### `/ohhshiny reset <player>`
 Resets a specific player's claim history, allowing them to claim all rewards again.
 - Useful for testing or special events
@@ -144,6 +151,57 @@ To give admins complete access:
 lp group admin permission set ohhshiny.* true
 ```
 
+## Language Configuration
+
+All messages are fully configurable through a language file. The file is automatically created at:
+```
+config/ohhshiny/lang.json
+```
+
+### Basic Usage
+
+Edit the `lang.json` file to customize any message:
+```json
+{
+  "prefix": "<aqua>[Ohh Shiny]</aqua>",
+  "loot.claimed": "<aqua>You found something shiny: {item}!",
+  "error.already_claimed": "<red>You've already claimed this!"
+}
+```
+
+After editing, reload with:
+```
+/ohhshiny reloadlang
+```
+
+### Text Formatting
+
+Requires [TextPlaceholderAPI](https://modrinth.com/mod/placeholder-api) (optional but recommended).
+
+**Colors:**
+- `<red>`, `<green>`, `<blue>`, `<yellow>`, `<aqua>`, `<gold>`, etc.
+- Hex colors: `<#FF0000>`
+
+**Formatting:**
+- `<bold>`, `<italic>`, `<underline>`, `<strikethrough>`
+
+**Advanced:**
+- Gradients: `<gradient:blue:aqua>text</gradient>`
+- Rainbow: `<rainbow>text</rainbow>`
+- Hover: `<hover:'tooltip text'>hover me</hover>`
+
+**Placeholders:**
+- Built-in: `{x}`, `{y}`, `{z}`, `{item}`, `{player}`, `{count}`
+- TextPlaceholderAPI: `%player:name%`, `%server:tps%`, etc.
+
+**Example:**
+```json
+{
+  "prefix": "<gradient:aqua:blue><bold>[Ohh Shiny]</bold></gradient>",
+  "loot.claimed": "<rainbow>✨ You found: {item}! ✨</rainbow>"
+}
+```
+
 ## Data Storage
 
 All reward data is stored in JSON format at:
@@ -180,8 +238,17 @@ For bug reports, feature requests, or questions, please open an issue on the pro
 
 ## Version History
 
+### 1.2.0
+- **Added**: Fully configurable language system with `lang.json`
+- **Added**: TextPlaceholderAPI integration for rich text formatting
+- **Added**: Support for colors, gradients, rainbow text, and more
+- **Added**: `/ohhshiny reloadlang` command to reload language file
+- **Added**: LuckPerms integration for permission management
+- **Improved**: All messages now support custom placeholders
+- **Improved**: Better error handling and logging
+
 ### 1.1.0
-- **Fixed**: Corrected package structure.
+- **Fixed**: Corrected package structure
 - **Fixed**: Particles now persist across server restarts and player relogs
 - **Added**: Automatic data loading on server start (no manual reload required)
 - **Improved**: Rainbow particle effects now cycle smoothly over 7 seconds
@@ -190,7 +257,6 @@ For bug reports, feature requests, or questions, please open an issue on the pro
 ### 1.0.0
 - Initial release
 - Basic reward creation and claiming system
-- LuckPerms integration
 - Custom textured item support
 - Block protection
 - Particle effects

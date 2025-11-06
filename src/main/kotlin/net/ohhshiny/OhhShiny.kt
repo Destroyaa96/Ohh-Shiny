@@ -7,8 +7,11 @@ import net.minecraft.server.command.CommandManager.literal
 import net.ohhshiny.commands.OhhShinyCommand
 import net.ohhshiny.events.OhhShinyEventHandler
 import net.ohhshiny.events.OhhShinyTickHandler
+import net.ohhshiny.util.LangManager
 import net.ohhshiny.util.LuckPermsUtil
 import org.slf4j.LoggerFactory
+import net.fabricmc.loader.api.FabricLoader
+import java.io.File
 
 /**
  * Main entry point for the Ohh Shiny mod.
@@ -22,6 +25,11 @@ object OhhShiny : ModInitializer {
 
     override fun onInitialize() {
         LOGGER.info("Initializing Ohh Shiny mod")
+        
+        // Initialize language manager with config directory
+        val configDir = File(FabricLoader.getInstance().configDir.toFile(), MOD_ID)
+        configDir.mkdirs()
+        LangManager.initialize(configDir)
         
         // Register event handlers for player interactions and particle effects
         OhhShinyEventHandler.register()
