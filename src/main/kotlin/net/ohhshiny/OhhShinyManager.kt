@@ -128,7 +128,8 @@ object OhhShinyManager {
         OhhShinyParticles.spawnCreateEffect(serverWorld, position)
         
         // Notify the admin of successful creation
-        player.sendMessage(OhhShinyMessages.lootCreated(position, dimension, rewardItem), false)
+        val itemName = rewardItem.name.string
+        player.sendMessage(OhhShinyMessages.lootCreated(position, dimension, itemName), false)
         
         // Automatically exit setup mode after placing one reward
         playersInSetupMode.remove(player.uuid)

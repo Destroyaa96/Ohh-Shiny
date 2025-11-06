@@ -19,7 +19,10 @@ import java.io.FileWriter
  */
 object LangManager {
     private val logger = LoggerFactory.getLogger("ohhshiny-lang")
-    private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
+    private val gson: Gson = GsonBuilder()
+        .setPrettyPrinting()
+        .disableHtmlEscaping()  // Prevent escaping < and > to \u003c and \u003e
+        .create()
     
     private val messages: MutableMap<String, String> = mutableMapOf()
     private lateinit var langFile: File
@@ -126,29 +129,29 @@ object LangManager {
     private fun getDefaultMessages(): Map<String, String> {
         return mapOf(
             // Success messages
-            "loot.created" to "<green>Ohh Shiny loot set at [{x}, {y}, {z}] in {dimension} with {item}",
-            "loot.claimed" to "<aqua>You found something shiny: <r>{item}!",
-            "loot.removed" to "<green>Removed Ohh Shiny loot at [{x}, {y}, {z}] in {dimension}",
+            "loot.created" to "<green>Ohh Shiny set at [{x}, {y}, {z}] in {dimension} with {item}",
+            "loot.claimed" to "<aqua>You found something shiny: {item}!",
+            "loot.removed" to "<green>Removed Ohh Shiny at [{x}, {y}, {z}] in {dimension}",
             
             // Setup mode messages
-            "setup.enabled" to "<yellow>Right-click a block to bind your held item as Ohh Shiny loot",
+            "setup.enabled" to "<yellow>Right-click a block to bind your held item as Ohh Shiny",
             "setup.disabled" to "<gray>Setup mode disabled",
             "remove.enabled" to "<yellow>Right-click an Ohh Shiny block to remove it",
             "remove.disabled" to "<gray>Remove mode disabled",
             
             // Error messages
-            "error.already_claimed" to "<red>You've already claimed this loot!",
-            "error.no_loot" to "<red>No Ohh Shiny loot at this location",
-            "error.empty_hand" to "<red>You must hold an item in your main hand to create Ohh Shiny loot",
+            "error.already_claimed" to "<red>You've already claimed this Ohh Shiny!",
+            "error.no_loot" to "<red>No Ohh Shiny at this location",
+            "error.empty_hand" to "<red>You must hold an item in your main hand to create Ohh Shiny",
             "error.no_permission" to "<red>You don't have permission: {permission}",
             "error.permission_service" to "<red>Permission service unavailable; contact an administrator",
             "error.block_protected" to "<red>This block is protected and cannot be broken!",
             "error.no_player" to "<red>No valid player found",
             
             // List command messages
-            "list.header" to "<gold>Active Ohh Shiny loot entries ({count} total):",
+            "list.header" to "<gold>Active Ohh Shiny entries ({count} total):",
             "list.entry" to "• [{x}, {y}, {z}] in {dimension}: {item} (claimed by {claimed} players)",
-            "list.empty" to "<gray>No Ohh Shiny loot entries found",
+            "list.empty" to "<gray>No Ohh Shiny entries found",
             "list.teleport_hover" to "<yellow>Click to teleport",
             
             // Admin command messages
@@ -159,12 +162,13 @@ object LangManager {
             "admin.given" to "<green>Given {item}",
             
             // Prefix - supports Simplified Text Format and placeholders
-            "prefix" to "<aqua>[Ohh Shiny]</aqua>",
+            "prefix" to "<rb>[Ohh Shiny]</rb>",
             
             // You can use:
-            // - Simplified Text Format: <red>, <bold>, <gradient:blue:aqua>, <rainbow>, etc.
+            // - Simplified Text Format: <red>, <bold>, <gradient:blue:aqua>, <rainbow>, <rb> (rainbow bold), etc.
             // - TextPlaceholderAPI placeholders: %player:name%, %server:tps%, etc.
             // - Custom placeholders: {x}, {y}, {z}, {item}, {player}, etc.
+            // - The {item} placeholder preserves Minecraft's formatting from custom item names
         )
     }
 }
