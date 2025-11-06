@@ -128,8 +128,7 @@ object OhhShinyManager {
         OhhShinyParticles.spawnCreateEffect(serverWorld, position)
         
         // Notify the admin of successful creation
-        val itemName = rewardItem.name.string
-        player.sendMessage(OhhShinyMessages.lootCreated(position, dimension, itemName), false)
+        player.sendMessage(OhhShinyMessages.lootCreated(position, dimension, rewardItem), false)
         
         // Automatically exit setup mode after placing one reward
         playersInSetupMode.remove(player.uuid)
@@ -137,7 +136,7 @@ object OhhShinyManager {
         
         // Log the creation for server admins
         logger.info(
-            "Player ${player.nameForScoreboard} created Ohh Shiny at ${dimension.value} [${position.x}, ${position.y}, ${position.z}] with item: ${itemName}"
+            "Player ${player.nameForScoreboard} created Ohh Shiny at ${dimension.value} [${position.x}, ${position.y}, ${position.z}] with item: ${rewardItem.name.string}"
         )
         
         return true

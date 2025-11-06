@@ -33,22 +33,46 @@ object OhhShinyMessages {
         return TextPlaceholderUtil.parseText(withPrefix(message), player)
     }
     
+    /**
+     * Replaces __ITEM_PLACEHOLDER__ in a Text object with the actual item name.
+     * This preserves the item's custom formatting.
+     */
+    private fun replaceItemPlaceholder(text: Text, itemName: Text): Text {
+        val content = text.string
+        if (!content.contains("__ITEM_PLACEHOLDER__")) {
+            return text
+        }
+        
+        // Split the text at the placeholder and rebuild with the item name
+        val parts = content.split("__ITEM_PLACEHOLDER__")
+        if (parts.size != 2) return text
+        
+        return Text.empty()
+            .append(TextPlaceholderUtil.parseText(parts[0]))
+            .append(itemName)
+            .append(TextPlaceholderUtil.parseText(parts[1]))
+    }
+    
     // Success messages (Green/Aqua)
-    fun lootCreated(position: BlockPos, dimension: RegistryKey<World>, itemName: String): Text {
-        val message = LangManager.getMessage("loot.created", mapOf(
+    fun lootCreated(position: BlockPos, dimension: RegistryKey<World>, itemStack: ItemStack): Text {
+        val messageTemplate = LangManager.getMessage("loot.created", mapOf(
             "x" to position.x.toString(),
             "y" to position.y.toString(),
             "z" to position.z.toString(),
             "dimension" to dimension.value.toString(),
-            "item" to itemName
+            "item" to "__ITEM_PLACEHOLDER__"
         ))
-        return createText(message)
+        val parsedText = createText(messageTemplate)
+        return replaceItemPlaceholder(parsedText, itemStack.name)
     }
     
     fun lootClaimed(itemStack: ItemStack, player: ServerPlayerEntity? = null): Text {
-        val itemName = itemStack.name.string
-        val message = LangManager.getMessage("loot.claimed", mapOf("item" to itemName))
-        return createText(message, player)
+        // Get the message template and parse it
+        val messageTemplate = LangManager.getMessage("loot.claimed", mapOf("item" to "__ITEM_PLACEHOLDER__"))
+        val parsedText = TextPlaceholderUtil.parseText(withPrefix(messageTemplate), player)
+        
+        // Find and replace the __ITEM_PLACEHOLDER__ with the actual item name (preserving formatting)
+        return replaceItemPlaceholder(parsedText, itemStack.name)
     }
     
     fun lootRemoved(position: BlockPos, dimension: RegistryKey<World>): Text {
