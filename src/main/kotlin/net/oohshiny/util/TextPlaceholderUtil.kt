@@ -2,7 +2,7 @@ package net.oohshiny.util
 
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
-import net.oohshiny.OohShiny
+import net.oohshiny.OhhShiny
 
 /**
  * Utility for optional TextPlaceholderAPI integration.
@@ -20,9 +20,9 @@ object TextPlaceholderUtil {
         try {
             Class.forName("eu.pb4.placeholders.api.TextParserUtils")
             placeholderApiLoaded = true
-            OohShiny.LOGGER.info("TextPlaceholderAPI detected - text formatting and placeholder support enabled")
+            OhhShiny.LOGGER.info("TextPlaceholderAPI detected - text formatting and placeholder support enabled")
         } catch (e: ClassNotFoundException) {
-            OohShiny.LOGGER.info("TextPlaceholderAPI not found - using plain text messages")
+            OhhShiny.LOGGER.info("TextPlaceholderAPI not found - using plain text messages")
         }
     }
     
@@ -56,7 +56,7 @@ object TextPlaceholderUtil {
                 parsedText
             }
         } catch (e: Exception) {
-            OohShiny.LOGGER.warn("Failed to parse text formatting: $text", e)
+            OhhShiny.LOGGER.warn("Failed to parse text formatting: $text", e)
             Text.literal(text)
         }
     }
@@ -85,7 +85,7 @@ object TextPlaceholderUtil {
                 text
             }
         } catch (e: Exception) {
-            OohShiny.LOGGER.warn("Failed to parse placeholders in text", e)
+            OhhShiny.LOGGER.warn("Failed to parse placeholders in text", e)
             text
         }
     }

@@ -121,7 +121,7 @@ object OhhShinyMessages {
                 .styled { style ->
                     style
                         .withClickEvent(ClickEvent(ClickEvent.Action.RUN_COMMAND, teleportCommand))
-                        .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(hoverMessage).formatted(Formatting.YELLOW)))
+                        .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, TextPlaceholderUtil.parseText(hoverMessage)))
                 }
             
             message.append(clickableCoords)

@@ -129,35 +129,35 @@ object LangManager {
     private fun getDefaultMessages(): Map<String, String> {
         return mapOf(
             // Success messages
-            "loot.created" to "<green>Ohh Shiny set at [{x}, {y}, {z}] in {dimension} with {item}",
+            "loot.created" to "<green>Loot set at [{x}, {y}, {z}] in {dimension} with {item}",
             "loot.claimed" to "<aqua>You found something shiny: {item}!",
-            "loot.removed" to "<green>Removed Ohh Shiny at [{x}, {y}, {z}] in {dimension}",
+            "loot.removed" to "<green>Removed loot at [{x}, {y}, {z}] in {dimension}",
             
             // Setup mode messages
-            "setup.enabled" to "<yellow>Right-click a block to bind your held item as Ohh Shiny",
+            "setup.enabled" to "<yellow>Right-click a block to bind your held item as loot",
             "setup.disabled" to "<gray>Setup mode disabled",
-            "remove.enabled" to "<yellow>Right-click an Ohh Shiny block to remove it",
+            "remove.enabled" to "<yellow>Right-click an loot block to remove it",
             "remove.disabled" to "<gray>Remove mode disabled",
             
             // Error messages
-            "error.already_claimed" to "<red>You've already claimed this Ohh Shiny!",
-            "error.no_loot" to "<red>No Ohh Shiny at this location",
-            "error.empty_hand" to "<red>You must hold an item in your main hand to create Ohh Shiny",
+            "error.already_claimed" to "<red>You've already claimed this loot!",
+            "error.no_loot" to "<red>No loot at this location",
+            "error.empty_hand" to "<red>You must hold an item in your main hand to create loot",
             "error.no_permission" to "<red>You don't have permission: {permission}",
             "error.permission_service" to "<red>Permission service unavailable; contact an administrator",
             "error.block_protected" to "<red>This block is protected and cannot be broken!",
             "error.no_player" to "<red>No valid player found",
             
             // List command messages
-            "list.header" to "<gold>Active Ohh Shiny entries ({count} total):",
+            "list.header" to "<gold>Active loot entries ({count} total):",
             "list.entry" to "• [{x}, {y}, {z}] in {dimension}: {item} (claimed by {claimed} players)",
-            "list.empty" to "<gray>No Ohh Shiny entries found",
             "list.teleport_hover" to "<yellow>Click to teleport",
+            "list.empty" to "<gray>No loot entries found",
             
             // Admin command messages
-            "admin.reload" to "<green>Ohh Shiny data reloaded ({count} entries)",
-            "admin.reset" to "<green>Reset {count} Ohh Shiny claims for player {player}",
-            "admin.cleared" to "<green>Cleared all Ohh Shiny data ({count} entries removed)",
+            "admin.reload" to "<green>Loot data reloaded ({count} entries)",
+            "admin.reset" to "<green>Reset {count} loot claims for player {player}",
+            "admin.cleared" to "<green>Cleared all loot data ({count} entries removed)",
             "admin.confirm" to "<yellow>This action cannot be undone. Run '{command}' again to confirm",
             "admin.given" to "<green>Given {item}",
             
