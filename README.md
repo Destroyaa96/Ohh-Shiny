@@ -25,14 +25,10 @@ A Minecraft Fabric mod that allows server administrators to create interactive, 
 
 ## Installation
 
-1. Install [Fabric Loader](https://fabricmc.net/use/) for Minecraft 1.21.1
-2. Download and install [Fabric API](https://modrinth.com/mod/fabric-api)
-3. Download and install [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin)
-4. Download the Ohh Shiny mod JAR file
-5. Place the JAR file in your `mods` folder
-6. (Optional) Install [LuckPerms](https://luckperms.net/) for advanced permission management
-7. (Optional) Install [TextPlaceholderAPI](https://modrinth.com/mod/placeholder-api) for text formatting
-8. Start your server
+1. Place the JAR file in your `mods` folder
+2. (Optional) Install [LuckPerms](https://luckperms.net/) for advanced permission management
+3. (Optional) Install [TextPlaceholderAPI](https://modrinth.com/mod/placeholder-api) for text formatting
+4. Start your server
 
 ## Usage
 
@@ -229,39 +225,11 @@ This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE
 
 ## Authors
 
-- **Saxophonist Reaper**
 - **Destroyaa**
 
 ## Support
 
 For bug reports, feature requests, or questions, please open an issue on the project repository.
-
-## Version History
-
-### 1.2.0
-- **Added**: Fully configurable language system with `lang.json`
-- **Added**: TextPlaceholderAPI integration for rich text formatting
-- **Added**: Support for colors, gradients, rainbow text, and more
-- **Added**: `/ohhshiny reloadlang` command to reload language file
-- **Added**: LuckPerms integration for permission management
-- **Improved**: All messages now support custom placeholders
-- **Improved**: Better error handling and logging
-
-### 1.1.0
-- **Fixed**: Corrected package structure
-- **Fixed**: Particles now persist across server restarts and player relogs
-- **Added**: Automatic data loading on server start (no manual reload required)
-- **Improved**: Rainbow particle effects now cycle smoothly over 7 seconds
-- **Improved**: Particles only render for nearby players who haven't claimed the reward
-
-### 1.0.0
-- Initial release
-- Basic reward creation and claiming system
-- Custom textured item support
-- Block protection
-- Particle effects
-- Persistent storage
-- Multi-dimension support
 
 ### Performance
 
