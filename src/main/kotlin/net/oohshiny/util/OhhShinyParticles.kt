@@ -1,11 +1,11 @@
-package net.ohhshiny.util
+package net.oohshiny.util
 
 import net.minecraft.particle.DustParticleEffect
 import net.minecraft.particle.ParticleTypes
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
-import net.ohhshiny.data.OhhShinyEntry
+import net.oohshiny.data.OhhShinyEntry
 import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin

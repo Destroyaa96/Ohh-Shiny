@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "ohhshiny",
+	"id": "oohshiny",
 	"version": "${version}",
-	"name": "Ohh Shiny",
+	"name": "Ooh Shiny",
 	"description": "A Minecraft mod that allows admins to create interactive, one-time reward points that players can claim by right-clicking blocks.",
 	"authors": [
         "Destroyaa"
@@ -12,12 +12,12 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "MIT",
-	"icon": "assets/ohhshiny/icon.png",
+	"icon": "assets/oohshiny/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
 			{
-				"value": "net.ohhshiny.OhhShiny",
+				"value": "net.oohshiny.OohShiny",
 				"adapter": "kotlin"
 			}
 		]

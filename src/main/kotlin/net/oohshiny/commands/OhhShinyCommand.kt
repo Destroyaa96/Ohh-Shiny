@@ -1,4 +1,4 @@
-package net.ohhshiny.commands
+package net.oohshiny.commands
 
 import com.mojang.authlib.GameProfile
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
@@ -14,22 +14,22 @@ import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
-import net.ohhshiny.OhhShinyManager
-import net.ohhshiny.util.OhhShinyMessages
-import net.ohhshiny.util.LuckPermsUtil
+import net.oohshiny.OhhShinyManager
+import net.oohshiny.util.OhhShinyMessages
+import net.oohshiny.util.LuckPermsUtil
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Command handler for /ohhshiny and all its subcommands.
+ * Command handler for /oohshiny and all its subcommands.
  * 
  * Available commands:
- * - /ohhshiny set - Enter setup mode to create rewards
- * - /ohhshiny remove - Enter remove mode to delete rewards
- * - /ohhshiny list - View all active reward locations
- * - /ohhshiny give - Give chest, pokeball, or player head items
- * - /ohhshiny reload - Reload data from disk
- * - /ohhshiny reset <player> - Reset a player's claim history
- * - /ohhshiny clearall - Delete all rewards (requires confirmation)
+ * - /oohshiny set - Enter setup mode to create rewards
+ * - /oohshiny remove - Enter remove mode to delete rewards
+ * - /oohshiny list - View all active reward locations
+ * - /oohshiny give - Give chest, pokeball, or player head items
+ * - /oohshiny reload - Reload data from disk
+ * - /oohshiny reset <player> - Reset a player's claim history
+ * - /oohshiny clearall - Delete all rewards (requires confirmation)
  */
 object OhhShinyCommand {
     
@@ -39,7 +39,7 @@ object OhhShinyCommand {
     
     fun register(root: LiteralArgumentBuilder<ServerCommandSource>) {
         
-        // /ohhshiny set - Enter setup mode
+        // /oohshiny set - Enter setup mode
         root.then(
             literal("set")
                 .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_SET) }
@@ -50,7 +50,7 @@ object OhhShinyCommand {
                 }
         )
         
-        // /ohhshiny remove - Enter remove mode
+        // /oohshiny remove - Enter remove mode
         root.then(
             literal("remove")
                 .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_REMOVE) }
@@ -61,12 +61,12 @@ object OhhShinyCommand {
                 }
         )
         
-        // /ohhshiny give - Give special items
+        // /oohshiny give - Give special items
         root.then(
             literal("give")
                 .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_GIVE) }
                 .then(
-                    // /ohhshiny give chest <type>
+                    // /oohshiny give chest <type>
                     literal("chest")
                         .then(
                             literal("copper")
@@ -91,7 +91,7 @@ object OhhShinyCommand {
                         )
                 )
                 .then(
-                    // /ohhshiny give pokeball <type>
+                    // /oohshiny give pokeball <type>
                     literal("pokeball")
                         .then(
                             literal("poke")
@@ -117,7 +117,7 @@ object OhhShinyCommand {
                 )
         )
         
-        // /ohhshiny list - List all Ohh Shiny entries
+        // /oohshiny list - List all Ooh Shiny entries
         root.then(
             literal("list")
                 .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_LIST) }
@@ -142,7 +142,7 @@ object OhhShinyCommand {
                 }
         )
         
-        // /ohhshiny reload - Reload Ohh Shiny data
+        // /oohshiny reload - Reload Ooh Shiny data
         root.then(
             literal("reload")
                 .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_RELOAD) }
@@ -154,12 +154,12 @@ object OhhShinyCommand {
                 }
         )
         
-        // /ohhshiny reloadlang - Reload language file
+        // /oohshiny reloadlang - Reload language file
         root.then(
             literal("reloadlang")
                 .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_RELOAD) }
                 .executes { context ->
-                    net.ohhshiny.util.LangManager.reload()
+                    net.oohshiny.util.LangManager.reload()
                     context.source.sendFeedback({ 
                         Text.literal("Language file reloaded").formatted(net.minecraft.util.Formatting.GREEN) 
                     }, false)
@@ -167,7 +167,7 @@ object OhhShinyCommand {
                 }
         )
         
-        // /ohhshiny reset <player> - Reset player's claims
+        // /oohshiny reset <player> - Reset player's claims
         root.then(
             literal("reset")
                 .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_RESET) }
@@ -194,7 +194,7 @@ object OhhShinyCommand {
                 )
         )
         
-        // /ohhshiny clearall - Clear all Ohh Shiny data (with confirmation)
+        // /oohshiny clearall - Clear all Ooh Shiny data (with confirmation)
         root.then(
             literal("clearall")
                 .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_CLEARALL) }
@@ -219,7 +219,7 @@ object OhhShinyCommand {
                         // First execution - request confirmation by running the command again
                         pendingConfirmations[confirmationKey] = currentTime
                         context.source.sendFeedback({ 
-                            OhhShinyMessages.confirmationRequired("/ohhshiny clearall") 
+                            OhhShinyMessages.confirmationRequired("/oohshiny clearall")
                         }, false)
                     }
                     1

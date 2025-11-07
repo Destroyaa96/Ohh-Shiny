@@ -1,4 +1,4 @@
-package net.ohhshiny.data
+package net.oohshiny.data
 
 import com.google.gson.*
 import net.fabricmc.loader.api.FabricLoader
@@ -12,20 +12,20 @@ import java.io.FileReader
 import java.io.FileWriter
 
 /**
- * Singleton object that manages persistent storage of all Ohh Shiny rewards.
+ * Singleton object that manages persistent storage of all Ooh Shiny rewards.
  * 
- * Data is stored in JSON format at: config/ohhshiny/ohhshiny.json
+ * Data is stored in JSON format at: config/oohshiny/oohshiny.json
  * The file is automatically created on first use and updated whenever rewards are added/removed.
  */
 object OhhShinyState {
-    private val logger = LoggerFactory.getLogger("ohhshiny")
+    private val logger = LoggerFactory.getLogger("oohshiny")
     private val lootEntries: MutableMap<String, OhhShinyEntry> = mutableMapOf()
     private val storageFile: File
     
     init {
-        val configDir = FabricLoader.getInstance().configDir.resolve("ohhshiny").toFile()
+        val configDir = FabricLoader.getInstance().configDir.resolve("oohshiny").toFile()
         if (!configDir.exists()) configDir.mkdirs()
-        storageFile = File(configDir, "ohhshiny.json")
+        storageFile = File(configDir, "oohshiny.json")
         loadFromDisk()
     }
     
@@ -112,7 +112,7 @@ object OhhShinyState {
                     val entryObj = entryElement.asJsonObject
                     
                     // World instances are needed to deserialize ItemStacks, but aren't available during mod init
-                    // Data will be loaded on the first /ohhshiny reload command after server starts
+                    // Data will be loaded on the first /oohshiny reload command after server starts
                     if (server == null) {
                         logger.warn("Cannot load Ohh Shiny entries without server context")
                         continue

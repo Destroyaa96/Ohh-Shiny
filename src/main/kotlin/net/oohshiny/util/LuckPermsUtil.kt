@@ -1,4 +1,4 @@
-package net.ohhshiny.util
+package net.oohshiny.util
 
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
@@ -7,7 +7,7 @@ import net.minecraft.server.network.ServerPlayerEntity
 import org.slf4j.LoggerFactory
 
 object LuckPermsUtil {
-    private val logger = LoggerFactory.getLogger("ohhshiny-luckperms")
+    private val logger = LoggerFactory.getLogger("oohshiny-luckperms")
     private var luckPerms: LuckPerms? = null
     private var initialized = false
     
@@ -62,20 +62,20 @@ object LuckPermsUtil {
         return luckPerms != null
     }
     
-    // Permission constants for Ohh Shiny
+    // Permission constants for Ooh Shiny
     object Permissions {
-        const val BASE = "ohhshiny.admin"
+        const val BASE = "oohshiny.admin"
         
-        // Ohh Shiny permissions
-        const val OHHSHINY_BASE = "ohhshiny"
-        const val OHHSHINY_SET = "ohhshiny.command.set"
-        const val OHHSHINY_REMOVE = "ohhshiny.command.remove"
-        const val OHHSHINY_LIST = "ohhshiny.command.list"
-        const val OHHSHINY_RELOAD = "ohhshiny.command.reload"
-        const val OHHSHINY_RESET = "ohhshiny.command.reset"
-        const val OHHSHINY_CLEARALL = "ohhshiny.command.clearall"
-        const val OHHSHINY_CLAIM = "ohhshiny.claim"
-        const val OHHSHINY_TELEPORT = "ohhshiny.command.teleport"
-        const val OHHSHINY_GIVE = "ohhshiny.command.give"
+        // Ooh Shiny permissions
+        const val OHHSHINY_BASE = "oohshiny"
+        const val OHHSHINY_SET = "oohshiny.command.set"
+        const val OHHSHINY_REMOVE = "oohshiny.command.remove"
+        const val OHHSHINY_LIST = "oohshiny.command.list"
+        const val OHHSHINY_RELOAD = "oohshiny.command.reload"
+        const val OHHSHINY_RESET = "oohshiny.command.reset"
+        const val OHHSHINY_CLEARALL = "oohshiny.command.clearall"
+        const val OHHSHINY_CLAIM = "oohshiny.claim"
+        const val OHHSHINY_TELEPORT = "oohshiny.command.teleport"
+        const val OHHSHINY_GIVE = "oohshiny.command.give"
     }
 }

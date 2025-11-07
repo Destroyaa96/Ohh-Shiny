@@ -1,9 +1,9 @@
-package net.ohhshiny.events
+package net.oohshiny.events
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.server.MinecraftServer
-import net.ohhshiny.OhhShinyManager
-import net.ohhshiny.util.OhhShinyParticles
+import net.oohshiny.OhhShinyManager
+import net.oohshiny.util.OhhShinyParticles
 
 /**
  * Handles periodic particle effects for active reward locations.

@@ -1,4 +1,4 @@
-package net.ohhshiny.data
+package net.oohshiny.data
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject

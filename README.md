@@ -1,4 +1,4 @@
-# Ohh Shiny
+# Ooh Shiny
 
 A Minecraft Fabric mod that allows server administrators to create interactive, one-time reward points that players can claim by right-clicking blocks in the world.
 
@@ -35,15 +35,15 @@ A Minecraft Fabric mod that allows server administrators to create interactive, 
 ### Creating Rewards
 
 1. Hold the item you want to give as a reward in your main hand
-2. Run `/ohhshiny set` to enter setup mode
+2. Run `/oohshiny set` to enter setup mode
 3. Right-click on any block to create a reward at that location
 4. The reward is immediately saved and ready for players to claim
 
-**Note**: Setup mode automatically exits after placing one reward. Run `/ohhshiny set` again to place another.
+**Note**: Setup mode automatically exits after placing one reward. Run `/oohshiny set` again to place another.
 
 ### Removing Rewards
 
-1. Run `/ohhshiny remove` to enter remove mode
+1. Run `/oohshiny remove` to enter remove mode
 2. Right-click on a block with an existing reward to delete it
 3. The reward and all associated claim data are permanently removed
 
@@ -60,13 +60,13 @@ Players with claim permissions can simply right-click on any block that has a re
 
 All commands require appropriate permissions (see Permissions section below).
 
-#### `/ohhshiny set`
+#### `/oohshiny set`
 Enters setup mode to create a new reward location.
 
-#### `/ohhshiny remove`
+#### `/oohshiny remove`
 Enters remove mode to delete an existing reward location.
 
-#### `/ohhshiny list`
+#### `/oohshiny list`
 Lists all active reward locations with details:
 - World dimension
 - Coordinates
@@ -74,32 +74,32 @@ Lists all active reward locations with details:
 - Number of players who have claimed it
 - Clickable teleport link for easy navigation
 
-#### `/ohhshiny give chest <type>`
+#### `/oohshiny give chest <type>`
 Gives a custom textured chest player head.
 - Types: `copper`, `iron`, `gold`
 - These are special items perfect for use as visually distinctive rewards
 
-#### `/ohhshiny give pokeball <type>`
+#### `/oohshiny give pokeball <type>`
 Gives a custom textured pokeball player head.
 - Types: `poke`, `ultra`, `master`
 - Great for themed servers or special events
 
-#### `/ohhshiny reload`
+#### `/oohshiny reload`
 Reloads all reward data from the configuration file on disk.
 - Useful for applying manual edits or recovering from errors
 - Shows the number of rewards loaded
 
-#### `/ohhshiny reloadlang`
+#### `/oohshiny reloadlang`
 Reloads the language file (`lang.json`) without restarting the server.
 - Apply message customizations immediately
 - No server restart required
 
-#### `/ohhshiny reset <player>`
+#### `/oohshiny reset <player>`
 Resets a specific player's claim history, allowing them to claim all rewards again.
 - Useful for testing or special events
 - Shows the number of claims reset
 
-#### `/ohhshiny clearall`
+#### `/oohshiny clearall`
 **DESTRUCTIVE**: Permanently deletes all rewards and claim data.
 - Requires confirmation (run the command twice within 30 seconds)
 - This action cannot be undone
@@ -107,51 +107,51 @@ Resets a specific player's claim history, allowing them to claim all rewards aga
 
 ## Permissions
 
-Ohh Shiny uses LuckPerms for permission management. If LuckPerms is not installed, all commands default to requiring operator status (level 2+).
+Ooh Shiny uses LuckPerms for permission management. If LuckPerms is not installed, all commands default to requiring operator status (level 2+).
 
 ### Available Permissions
 
 | Permission | Description | Default |
 |-----------|-------------|---------|
-| `ohhshiny.base` | Access to the base `/ohhshiny` command | OP |
-| `ohhshiny.claim` | Ability to claim rewards by right-clicking blocks | OP |
-| `ohhshiny.set` | Create new reward locations | OP |
-| `ohhshiny.remove` | Delete existing reward locations | OP |
-| `ohhshiny.list` | View all active reward locations | OP |
-| `ohhshiny.give` | Spawn custom textured items | OP |
-| `ohhshiny.reload` | Reload data from disk | OP |
-| `ohhshiny.reset` | Reset player claim histories | OP |
-| `ohhshiny.clearall` | Delete all reward data | OP |
+| `oohshiny.base` | Access to the base `/oohshiny` command | OP |
+| `oohshiny.claim` | Ability to claim rewards by right-clicking blocks | OP |
+| `oohshiny.set` | Create new reward locations | OP |
+| `oohshiny.remove` | Delete existing reward locations | OP |
+| `oohshiny.list` | View all active reward locations | OP |
+| `oohshiny.give` | Spawn custom textured items | OP |
+| `oohshiny.reload` | Reload data from disk | OP |
+| `oohshiny.reset` | Reset player claim histories | OP |
+| `oohshiny.clearall` | Delete all reward data | OP |
 
 ### Permission Examples
 
 To allow all players to claim rewards:
 ```
-lp group default permission set ohhshiny.claim true
+lp group default permission set oohshiny.claim true
 ```
 
 To give moderators full access except clearall:
 ```
-lp group moderator permission set ohhshiny.base true
-lp group moderator permission set ohhshiny.claim true
-lp group moderator permission set ohhshiny.set true
-lp group moderator permission set ohhshiny.remove true
-lp group moderator permission set ohhshiny.list true
-lp group moderator permission set ohhshiny.give true
-lp group moderator permission set ohhshiny.reload true
-lp group moderator permission set ohhshiny.reset true
+lp group moderator permission set oohshiny.base true
+lp group moderator permission set oohshiny.claim true
+lp group moderator permission set oohshiny.set true
+lp group moderator permission set oohshiny.remove true
+lp group moderator permission set oohshiny.list true
+lp group moderator permission set oohshiny.give true
+lp group moderator permission set oohshiny.reload true
+lp group moderator permission set oohshiny.reset true
 ```
 
 To give admins complete access:
 ```
-lp group admin permission set ohhshiny.* true
+lp group admin permission set oohshiny.* true
 ```
 
 ## Language Configuration
 
 All messages are fully configurable through a language file. The file is automatically created at:
 ```
-config/ohhshiny/lang.json
+config/oohshiny/lang.json
 ```
 
 ### Basic Usage
@@ -159,7 +159,7 @@ config/ohhshiny/lang.json
 Edit the `lang.json` file to customize any message:
 ```json
 {
-  "prefix": "<aqua>[Ohh Shiny]</aqua>",
+  "prefix": "<aqua>[Ooh Shiny]</aqua>",
   "loot.claimed": "<aqua>You found something shiny: {item}!",
   "error.already_claimed": "<red>You've already claimed this!"
 }
@@ -167,7 +167,7 @@ Edit the `lang.json` file to customize any message:
 
 After editing, reload with:
 ```
-/ohhshiny reloadlang
+/oohshiny reloadlang
 ```
 
 ### Text Formatting
@@ -193,7 +193,7 @@ Requires [TextPlaceholderAPI](https://modrinth.com/mod/placeholder-api) (optiona
 **Example:**
 ```json
 {
-  "prefix": "<gradient:aqua:blue><bold>[Ohh Shiny]</bold></gradient>",
+  "prefix": "<gradient:aqua:blue><bold>[Ooh Shiny]</bold></gradient>",
   "loot.claimed": "<rainbow>✨ You found: {item}! ✨</rainbow>"
 }
 ```
@@ -202,7 +202,7 @@ Requires [TextPlaceholderAPI](https://modrinth.com/mod/placeholder-api) (optiona
 
 All reward data is stored in JSON format at:
 ```
-config/ohhshiny/ohhshiny.json
+config/oohshiny/oohshiny.json
 ```
 
 The file is automatically created on first use and updated whenever:
@@ -217,7 +217,7 @@ Each reward entry contains:
 - **Reward Item**: Serialized item data (type, count, NBT data)
 - **Claimed Players**: List of player UUIDs who have claimed this reward
 
-You can manually edit this file, but remember to run `/ohhshiny reload` afterward to apply changes.
+You can manually edit this file, but remember to run `/oohshiny reload` afterward to apply changes.
 
 ## License
 
@@ -239,28 +239,28 @@ For bug reports, feature requests, or questions, please open an issue on the pro
 
 ## Tips and Best Practices
 
-1. **Backup your data**: Always backup `config/ohhshiny/ohhshiny.json` before major operations
+1. **Backup your data**: Always backup `config/oohshiny/oohshiny.json` before major operations
 2. **Use custom items**: The built-in chest and pokeball heads make rewards more visually appealing
 3. **Strategic placement**: Place rewards in interesting or hard-to-reach locations
 4. **Regular reloads**: If you manually edit the JSON file, always reload afterward
 5. **Permission hierarchy**: Give players only the permissions they need
-6. **Testing**: Use `/ohhshiny reset` to test rewards without creating new ones
+6. **Testing**: Use `/oohshiny reset` to test rewards without creating new ones
 7. **Visual feedback**: The particle effects help players know they've found something special
 
 ## Troubleshooting
 
 ### Players can't claim rewards
-- Verify they have the `ohhshiny.claim` permission
+- Verify they have the `oohshiny.claim` permission
 - Check the server logs for permission errors
 - Ensure LuckPerms is properly configured
 
 ### Rewards not saving
-- Check file permissions on the `config/ohhshiny` directory
+- Check file permissions on the `config/oohshiny` directory
 - Look for errors in the server console
-- Try manually running `/ohhshiny reload`
+- Try manually running `/oohshiny reload`
 
 ### Rewards disappear after restart
-- Ensure the `ohhshiny.json` file exists and is not corrupted
+- Ensure the `oohshiny.json` file exists and is not corrupted
 - Check that the mod loaded correctly during startup
 - Verify no other mods are interfering with the config directory
 
@@ -268,4 +268,4 @@ For bug reports, feature requests, or questions, please open an issue on the pro
 - Particles automatically load on server start (as of v1.1.0)
 - Particles only appear for players who haven't claimed the reward
 - Particles only render within 16 blocks of a player
-- Try running `/ohhshiny reload` if particles still don't appear
+- Try running `/oohshiny reload` if particles still don't appear

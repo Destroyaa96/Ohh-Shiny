@@ -1,4 +1,4 @@
-package net.ohhshiny
+package net.oohshiny
 
 import net.minecraft.item.ItemStack
 import net.minecraft.registry.RegistryKey
@@ -6,10 +6,10 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.ohhshiny.data.OhhShinyEntry
-import net.ohhshiny.data.OhhShinyState
-import net.ohhshiny.util.OhhShinyMessages
-import net.ohhshiny.util.OhhShinyParticles
+import net.oohshiny.data.OhhShinyEntry
+import net.oohshiny.data.OhhShinyState
+import net.oohshiny.util.OhhShinyMessages
+import net.oohshiny.util.OhhShinyParticles
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
  * - Data persistence and reloading
  */
 object OhhShinyManager {
-    private val logger = LoggerFactory.getLogger("ohhshiny")
+    private val logger = LoggerFactory.getLogger("oohshiny")
     
     // Track which players are currently in setup or remove mode (for admin operations)
     private val playersInSetupMode: MutableSet<UUID> = ConcurrentHashMap.newKeySet()

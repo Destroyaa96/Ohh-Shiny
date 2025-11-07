@@ -1,4 +1,4 @@
-package net.ohhshiny.util
+package net.oohshiny.util
 
 import net.minecraft.item.ItemStack
 import net.minecraft.registry.RegistryKey

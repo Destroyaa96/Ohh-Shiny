@@ -1,16 +1,16 @@
-package net.ohhshiny.events
+package net.oohshiny.events
 
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.ActionResult
-import net.ohhshiny.OhhShinyManager
-import net.ohhshiny.util.OhhShinyMessages
-import net.ohhshiny.util.LuckPermsUtil
+import net.oohshiny.OhhShinyManager
+import net.oohshiny.util.OhhShinyMessages
+import net.oohshiny.util.LuckPermsUtil
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import org.slf4j.LoggerFactory
-import net.ohhshiny.util.OhhShinyParticles
+import net.oohshiny.util.OhhShinyParticles
 
 /**
  * Handles all player interactions with blocks for Ohh Shiny functionality.
@@ -23,7 +23,7 @@ import net.ohhshiny.util.OhhShinyParticles
  * Also protects Ohh Shiny blocks from being broken.
  */
 object OhhShinyEventHandler {
-    private val logger = LoggerFactory.getLogger("ohhshiny")
+    private val logger = LoggerFactory.getLogger("oohshiny")
     
     /**
      * Registers all event listeners needed for Ohh Shiny functionality.

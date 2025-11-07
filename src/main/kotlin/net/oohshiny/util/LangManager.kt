@@ -1,4 +1,4 @@
-package net.ohhshiny.util
+package net.oohshiny.util
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -18,7 +18,7 @@ import java.io.FileWriter
  * - Hot-reloading of language files
  */
 object LangManager {
-    private val logger = LoggerFactory.getLogger("ohhshiny-lang")
+    private val logger = LoggerFactory.getLogger("oohshiny-lang")
     private val gson: Gson = GsonBuilder()
         .setPrettyPrinting()
         .disableHtmlEscaping()  // Prevent escaping < and > to \u003c and \u003e
