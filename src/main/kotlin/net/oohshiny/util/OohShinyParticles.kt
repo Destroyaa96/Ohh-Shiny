@@ -1,27 +1,27 @@
-package net.oohshiny.util
+package net.OOHSHINY.util
 
 import net.minecraft.particle.DustParticleEffect
 import net.minecraft.particle.ParticleTypes
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
-import net.oohshiny.data.OhhShinyEntry
+import net.OOHSHINY.data.OOHSHINYEntry
 import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Handles particle effects for Ohh Shiny locations
+ * Handles particle effects for Ooh Shiny locations
  */
-object OhhShinyParticles {
+object OOHSHINYParticles {
     
     /**
-     * Spawns particles at an Ohh Shiny location
+     * Spawns particles at an Ooh Shiny location
      * Should be called periodically (e.g., via a tick event)
-     * @param entry The Ohh Shiny entry
+     * @param entry The Ooh Shiny entry
      * @param playerUuid Optional player UUID to check if they've already claimed (null = show for everyone)
      */
-    fun spawnParticlesAt(entry: OhhShinyEntry, playerUuid: java.util.UUID? = null) {
+    fun spawnParticlesAt(entry: OOHSHINYEntry, playerUuid: java.util.UUID? = null) {
         // Don't spawn particles if the specific player has already claimed this loot
         if (playerUuid != null && entry.hasPlayerClaimed(playerUuid)) {
             return
@@ -81,7 +81,7 @@ object OhhShinyParticles {
     }
     
     /**
-     * Spawns particles when an Ohh Shiny location is created
+     * Spawns particles when an Ooh Shiny location is created
      */
     fun spawnCreateEffect(world: ServerWorld, pos: BlockPos) {
         val x = pos.x + 0.5
@@ -103,7 +103,7 @@ object OhhShinyParticles {
     }
     
     /**
-     * Spawns particles when an Ohh Shiny location is removed
+     * Spawns particles when an Ooh Shiny location is removed
      */
     fun spawnRemoveEffect(world: ServerWorld, pos: BlockPos) {
         val x = pos.x + 0.5

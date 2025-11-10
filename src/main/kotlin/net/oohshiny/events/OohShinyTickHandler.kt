@@ -1,9 +1,9 @@
-package net.oohshiny.events
+package net.OOHSHINY.events
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.server.MinecraftServer
-import net.oohshiny.OhhShinyManager
-import net.oohshiny.util.OhhShinyParticles
+import net.OOHSHINY.OOHSHINYManager
+import net.OOHSHINY.util.OOHSHINYParticles
 
 /**
  * Handles periodic particle effects for active reward locations.
@@ -11,7 +11,7 @@ import net.oohshiny.util.OhhShinyParticles
  * Spawns colorful particles above rewards to make them visible to players,
  * but only when an unclaimed player is nearby to reduce server load.
  */
-object OhhShinyTickHandler {
+object OOHSHINYTickHandler {
     
     private var tickCounter = 0
     private const val PARTICLE_SPAWN_INTERVAL = 20 // Check every 20 ticks (1 second) for performance
@@ -44,7 +44,7 @@ object OhhShinyTickHandler {
      * This optimization prevents unnecessary particle spawning in empty areas.
      */
     private fun spawnParticlesAtLootLocations(server: MinecraftServer) {
-        val allEntries = OhhShinyManager.getAllLootEntries(server)
+        val allEntries = OOHSHINYManager.getAllLootEntries(server)
         val onlinePlayers = server.playerManager.playerList
         
         for (entry in allEntries.values) {
@@ -71,7 +71,7 @@ object OhhShinyTickHandler {
                 }
                 
                 if (hasNearbyUnclaimedPlayer) {
-                    OhhShinyParticles.spawnParticlesAt(entry)
+                    OOHSHINYParticles.spawnParticlesAt(entry)
                 }
             } catch (e: Exception) {
                 // Silently skip rewards in unloaded worlds/dimensions

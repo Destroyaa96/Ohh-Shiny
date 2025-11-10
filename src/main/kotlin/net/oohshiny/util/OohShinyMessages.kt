@@ -1,4 +1,4 @@
-package net.oohshiny.util
+package net.OOHSHINY.util
 
 import net.minecraft.item.ItemStack
 import net.minecraft.registry.RegistryKey
@@ -12,10 +12,10 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 /**
- * Message formatting utilities for Ohh Shiny system feedback.
+ * Message formatting utilities for Ooh Shiny system feedback.
  * All messages are loaded from LangManager and support TextPlaceholderAPI placeholders.
  */
-object OhhShinyMessages {
+object OOHSHINYMessages {
     
     /**
      * Helper function to prepend prefix to messages.
@@ -49,6 +49,30 @@ object OhhShinyMessages {
         val itemName = itemStack.name.string
         val message = LangManager.getMessage("loot.claimed", mapOf("item" to itemName))
         return createText(message, player)
+    }
+    
+    fun lootClaimedMultiple(itemStacks: List<ItemStack>, player: ServerPlayerEntity? = null): Text {
+        if (itemStacks.size == 1) {
+            return lootClaimed(itemStacks.first(), player)
+        }
+        val itemNames = itemStacks.joinToString(", ") { it.name.string }
+        val message = LangManager.getMessage("loot.claimed.multiple", mapOf(
+            "items" to itemNames,
+            "count" to itemStacks.size.toString()
+        ))
+        return createText(message, player)
+    }
+    
+    fun itemAddedToLoot(position: BlockPos, dimension: RegistryKey<World>, itemName: String, totalItems: Int): Text {
+        val message = LangManager.getMessage("loot.item_added", mapOf(
+            "x" to position.x.toString(),
+            "y" to position.y.toString(),
+            "z" to position.z.toString(),
+            "dimension" to dimension.value.toString(),
+            "item" to itemName,
+            "total" to totalItems.toString()
+        ))
+        return createText(message)
     }
     
     fun lootRemoved(position: BlockPos, dimension: RegistryKey<World>): Text {
@@ -106,7 +130,7 @@ object OhhShinyMessages {
     
     fun lootListEntry(position: BlockPos, dimension: RegistryKey<World>, itemName: String, claimedCount: Int, source: ServerCommandSource): Text {
         val coordText = "[${position.x}, ${position.y}, ${position.z}]"
-        val hasTeleportPerm = LuckPermsUtil.hasPermission(source, LuckPermsUtil.Permissions.OHHSHINY_TELEPORT)
+        val hasTeleportPerm = LuckPermsUtil.hasPermission(source, LuckPermsUtil.Permissions.OOHSHINY_TELEPORT)
         
         val message = Text.literal("• ")
         

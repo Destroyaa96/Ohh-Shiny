@@ -1,4 +1,4 @@
-package net.oohshiny
+package net.OOHSHINY
 
 import net.minecraft.item.ItemStack
 import net.minecraft.registry.RegistryKey
@@ -6,16 +6,16 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import net.oohshiny.data.OhhShinyEntry
-import net.oohshiny.data.OhhShinyState
-import net.oohshiny.util.OhhShinyMessages
-import net.oohshiny.util.OhhShinyParticles
+import net.OOHSHINY.data.OOHSHINYEntry
+import net.OOHSHINY.data.OOHSHINYState
+import net.OOHSHINY.util.OOHSHINYMessages
+import net.OOHSHINY.util.OOHSHINYParticles
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Central manager for all Ohh Shiny operations.
+ * Central manager for all Ooh Shiny operations.
  * 
  * Manages:
  * - Creating and removing reward locations (admin operations)
@@ -23,8 +23,8 @@ import java.util.concurrent.ConcurrentHashMap
  * - Setup and remove mode tracking for admins
  * - Data persistence and reloading
  */
-object OhhShinyManager {
-    private val logger = LoggerFactory.getLogger("oohshiny")
+object OOHSHINYManager {
+    private val logger = LoggerFactory.getLogger("OOHSHINY")
     
     // Track which players are currently in setup or remove mode (for admin operations)
     private val playersInSetupMode: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
@@ -33,8 +33,8 @@ object OhhShinyManager {
     /**
      * Gets the singleton state object that manages all reward data.
      */
-    private fun getState(server: MinecraftServer): OhhShinyState {
-        return OhhShinyState
+    private fun getState(server: MinecraftServer): OOHSHINYState {
+        return OOHSHINYState
     }
     
     /**
@@ -44,9 +44,9 @@ object OhhShinyManager {
     fun enableSetupMode(player: ServerPlayerEntity) {
         playersInSetupMode.add(player.uuid)
         playersInRemoveMode.remove(player.uuid) // Ensure player is not in both modes at once
-        player.sendMessage(OhhShinyMessages.setupModeEnabled(), false)
+        player.sendMessage(OOHSHINYMessages.setupModeEnabled(), false)
         
-        logger.info("Player ${player.nameForScoreboard} entered Ohh Shiny setup mode")
+        logger.info("Player ${player.nameForScoreboard} entered Ooh Shiny setup mode")
     }
     
     /**
@@ -56,9 +56,9 @@ object OhhShinyManager {
     fun enableRemoveMode(player: ServerPlayerEntity) {
         playersInRemoveMode.add(player.uuid)
         playersInSetupMode.remove(player.uuid) // Ensure player is not in both modes at once
-        player.sendMessage(OhhShinyMessages.removeModeEnabled(), false)
+        player.sendMessage(OOHSHINYMessages.removeModeEnabled(), false)
         
-        logger.info("Player ${player.nameForScoreboard} entered Ohh Shiny remove mode")
+        logger.info("Player ${player.nameForScoreboard} entered Ooh Shiny remove mode")
     }
     
     /**
@@ -69,9 +69,9 @@ object OhhShinyManager {
         val wasInRemove = playersInRemoveMode.remove(player.uuid)
         
         if (wasInSetup) {
-            player.sendMessage(OhhShinyMessages.setupModeDisabled(), false)
+            player.sendMessage(OOHSHINYMessages.setupModeDisabled(), false)
         } else if (wasInRemove) {
-            player.sendMessage(OhhShinyMessages.removeModeDisabled(), false)
+            player.sendMessage(OOHSHINYMessages.removeModeDisabled(), false)
         }
     }
     
@@ -90,12 +90,13 @@ object OhhShinyManager {
     }
     
     /**
-     * Creates a new Ohh Shiny reward at the specified location.
+     * Creates a new Ooh Shiny reward at the specified location.
      * 
      * Called when an admin in setup mode right-clicks a block. The item in their main hand
      * becomes the reward that players will receive when they claim this location.
+     * If a loot entry already exists at this location, the item is added to it.
      * 
-     * @return true if the reward was successfully created, false otherwise
+     * @return true if the reward was successfully created/updated, false otherwise
      */
     fun createLootEntry(
         player: ServerPlayerEntity, 
@@ -104,7 +105,7 @@ object OhhShinyManager {
         heldItem: ItemStack
     ): Boolean {
         if (heldItem.isEmpty) {
-            player.sendMessage(OhhShinyMessages.emptyHandError(), false)
+            player.sendMessage(OOHSHINYMessages.emptyHandError(), false)
             return false
         }
         
@@ -113,38 +114,59 @@ object OhhShinyManager {
         
         // Retrieve the world instance for this dimension
         val serverWorld = server.getWorld(dimension) ?: run {
-            player.sendMessage(OhhShinyMessages.emptyHandError(), false)
+            player.sendMessage(OOHSHINYMessages.emptyHandError(), false)
             return false
         }
         
         // Make a copy of the held item to store as the reward
         val rewardItem = heldItem.copy()
         
-        // Create the reward entry and add it to persistent storage
-        val entry = OhhShinyEntry(serverWorld, position, rewardItem)
-        state.addLootEntry(entry)
+        // Check if a loot entry already exists at this location
+        val existingEntry = state.getLootEntry(dimension, position)
         
-        // Show visual feedback at the location
-        OhhShinyParticles.spawnCreateEffect(serverWorld, position)
-        
-        // Notify the admin of successful creation
-        val itemName = rewardItem.name.string
-        player.sendMessage(OhhShinyMessages.lootCreated(position, dimension, itemName), false)
+        if (existingEntry != null) {
+            // Add the item to the existing entry
+            existingEntry.rewardItems.add(rewardItem)
+            state.markDirty()
+            
+            // Show visual feedback at the location
+            OOHSHINYParticles.spawnCreateEffect(serverWorld, position)
+            
+            // Notify the admin that item was added
+            val itemName = rewardItem.name.string
+            player.sendMessage(OOHSHINYMessages.itemAddedToLoot(position, dimension, itemName, existingEntry.rewardItems.size), false)
+            
+            // Log the addition for server admins
+            logger.info(
+                "Player ${player.nameForScoreboard} added item to Ooh Shiny at ${dimension.value} [${position.x}, ${position.y}, ${position.z}]: ${itemName} (total items: ${existingEntry.rewardItems.size})"
+            )
+        } else {
+            // Create a new reward entry
+            val entry = OOHSHINYEntry(serverWorld, position, mutableListOf(rewardItem))
+            state.addLootEntry(entry)
+            
+            // Show visual feedback at the location
+            OOHSHINYParticles.spawnCreateEffect(serverWorld, position)
+            
+            // Notify the admin of successful creation
+            val itemName = rewardItem.name.string
+            player.sendMessage(OOHSHINYMessages.lootCreated(position, dimension, itemName), false)
+            
+            // Log the creation for server admins
+            logger.info(
+                "Player ${player.nameForScoreboard} created Ooh Shiny at ${dimension.value} [${position.x}, ${position.y}, ${position.z}] with item: ${itemName}"
+            )
+        }
         
         // Automatically exit setup mode after placing one reward
         playersInSetupMode.remove(player.uuid)
-        player.sendMessage(OhhShinyMessages.setupModeDisabled(), false)
-        
-        // Log the creation for server admins
-        logger.info(
-            "Player ${player.nameForScoreboard} created Ohh Shiny at ${dimension.value} [${position.x}, ${position.y}, ${position.z}] with item: ${rewardItem.name.string}"
-        )
+        player.sendMessage(OOHSHINYMessages.setupModeDisabled(), false)
         
         return true
     }
     
     /**
-     * Removes an Ohh Shiny reward at the specified location.
+     * Removes an Ooh Shiny reward at the specified location.
      * 
      * Called when an admin in remove mode right-clicks a block. If a reward exists at that
      * location, it will be permanently deleted.
@@ -163,31 +185,31 @@ object OhhShinyManager {
         
         if (removedEntry != null) {
             // Show visual feedback for the removal
-            OhhShinyParticles.spawnRemoveEffect(removedEntry.world, position)
+            OOHSHINYParticles.spawnRemoveEffect(removedEntry.world, position)
             
-            player.sendMessage(OhhShinyMessages.lootRemoved(position, dimension), false)
+            player.sendMessage(OOHSHINYMessages.lootRemoved(position, dimension), false)
             
             // Automatically exit remove mode after removing one reward
             playersInRemoveMode.remove(player.uuid)
-            player.sendMessage(OhhShinyMessages.removeModeDisabled(), false)
+            player.sendMessage(OOHSHINYMessages.removeModeDisabled(), false)
             
             // Log the removal for server admins
             logger.info(
-                "Player ${player.nameForScoreboard} removed Ohh Shiny at ${dimension.value} [${position.x}, ${position.y}, ${position.z}]"
+                "Player ${player.nameForScoreboard} removed Ooh Shiny at ${dimension.value} [${position.x}, ${position.y}, ${position.z}]"
             )
             
             return true
         } else {
-            player.sendMessage(OhhShinyMessages.noLootAtLocation(), false)
+            player.sendMessage(OOHSHINYMessages.noLootAtLocation(), false)
             return false
         }
     }
     
     /**
-     * Attempts to claim an Ohh Shiny reward at the specified location.
+     * Attempts to claim an Ooh Shiny reward at the specified location.
      * 
      * Called when a player with claim permissions right-clicks a block. If a reward exists
-     * at that location and they haven't claimed it before, they receive the reward item.
+     * at that location and they haven't claimed it before, they receive all reward items.
      * 
      * @return true if the reward was successfully claimed, false otherwise
      */
@@ -203,32 +225,34 @@ object OhhShinyManager {
         
         // Prevent players from claiming the same reward twice
         if (entry.hasPlayerClaimed(player.uuid)) {
-            player.sendMessage(OhhShinyMessages.alreadyClaimed(player), false)
+            player.sendMessage(OOHSHINYMessages.alreadyClaimed(player), false)
             return false
         }
         
-        // Give the reward item to the player (or drop it if inventory is full)
-        val rewardCopy = entry.rewardItem.copy()
-        if (!player.giveItemStack(rewardCopy)) {
-            player.dropItem(rewardCopy, false)
+        // Give all reward items to the player (or drop them if inventory is full)
+        entry.rewardItems.forEach { rewardItem ->
+            val rewardCopy = rewardItem.copy()
+            if (!player.giveItemStack(rewardCopy)) {
+                player.dropItem(rewardCopy, false)
+            }
         }
         
         // Record that this player has claimed this reward
         entry.claimForPlayer(player.uuid)
         
         // Show visual feedback for the successful claim
-        OhhShinyParticles.spawnClaimEffect(entry.world, position)
+        OOHSHINYParticles.spawnClaimEffect(entry.world, position)
         
         // Save the updated claim data to disk immediately
         state.markDirty()
         
-        // Notify the player of their reward
-        player.sendMessage(OhhShinyMessages.lootClaimed(entry.rewardItem, player), false)
+        // Notify the player of their rewards
+        player.sendMessage(OOHSHINYMessages.lootClaimedMultiple(entry.rewardItems, player), false)
         
         // Log the claim for server records
-        val itemName = entry.rewardItem.name.string
+        val itemNames = entry.rewardItems.joinToString(", ") { it.name.string }
         logger.info(
-            "Player ${player.nameForScoreboard} claimed Ohh Shiny at ${dimension.value} [${position.x}, ${position.y}, ${position.z}]: ${itemName}"
+            "Player ${player.nameForScoreboard} claimed Ooh Shiny at ${dimension.value} [${position.x}, ${position.y}, ${position.z}]: ${itemNames}"
         )
         
         return true
@@ -238,14 +262,14 @@ object OhhShinyManager {
      * Retrieves a specific loot entry at the given location.
      * Used for block protection checks.
      */
-    fun getLootEntry(server: MinecraftServer, dimension: RegistryKey<World>, position: BlockPos): OhhShinyEntry? {
+    fun getLootEntry(server: MinecraftServer, dimension: RegistryKey<World>, position: BlockPos): OOHSHINYEntry? {
         return getState(server).getLootEntry(dimension, position)
     }
     
     /**
      * Retrieves all reward entries for display in the list command.
      */
-    fun getAllLootEntries(server: MinecraftServer): Map<String, OhhShinyEntry> {
+    fun getAllLootEntries(server: MinecraftServer): Map<String, OOHSHINYEntry> {
         return getState(server).getAllLootEntries()
     }
     
@@ -265,7 +289,7 @@ object OhhShinyManager {
         state.reload(server)
         val count = state.getEntryCount()
         
-        logger.info("Ohh Shiny data reloaded from disk: ${count} entries")
+        logger.info("Ooh Shiny data reloaded from disk: ${count} entries")
         return count
     }
     
@@ -291,7 +315,7 @@ object OhhShinyManager {
             state.markDirty()
         }
         
-        logger.info("Reset ${resetCount} Ohh Shiny claims for player UUID: ${targetPlayerUuid}")
+        logger.info("Reset ${resetCount} Ooh Shiny claims for player UUID: ${targetPlayerUuid}")
         return resetCount
     }
     
@@ -307,7 +331,7 @@ object OhhShinyManager {
         
         state.clearAllEntries()
         
-        logger.info("Cleared all Ohh Shiny data: ${count} entries removed")
+        logger.info("Cleared all Ooh Shiny data: ${count} entries removed")
         return count
     }
     

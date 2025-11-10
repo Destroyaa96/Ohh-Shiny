@@ -1,4 +1,4 @@
-package net.oohshiny.data
+package net.OOHSHINY.data
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -14,15 +14,15 @@ import net.minecraft.world.World
 import java.util.*
 
 /**
- * Represents a single Ohh Shiny reward location in the world.
+ * Represents a single Ooh Shiny reward location in the world.
  * 
- * Contains the location, the reward item, and tracks which players have already claimed it.
+ * Contains the location, the reward items, and tracks which players have already claimed it.
  * Provides serialization/deserialization for persistent storage.
  */
-data class OhhShinyEntry(
+data class OOHSHINYEntry(
     val world: ServerWorld,
     val position: BlockPos,
-    val rewardItem: ItemStack,
+    val rewardItems: MutableList<ItemStack>,
     val claimedPlayers: MutableSet<UUID> = mutableSetOf()
 ) {
 
@@ -54,7 +54,9 @@ data class OhhShinyEntry(
         }
         json.add("position", posJson)
 
-        json.add("rewardItem", serializeItemStack(rewardItem))
+        val rewardItemsArray = JsonArray()
+        rewardItems.forEach { rewardItemsArray.add(serializeItemStack(it)) }
+        json.add("rewardItems", rewardItemsArray)
 
         val claimedArray = JsonArray()
         claimedPlayers.forEach { claimedArray.add(it.toString()) }
@@ -93,10 +95,10 @@ data class OhhShinyEntry(
 
     companion object {
         /**
-         * Deserializes an OhhShinyEntry from JSON.
+         * Deserializes an OOHSHINYEntry from JSON.
          * Returns null if the data is malformed or cannot be parsed.
          */
-        fun readFromJson(world: ServerWorld, json: JsonObject): OhhShinyEntry? {
+        fun readFromJson(world: ServerWorld, json: JsonObject): OOHSHINYEntry? {
             try {
                 val posJson = json.getAsJsonObject("position")
                 val position = BlockPos(
@@ -105,8 +107,25 @@ data class OhhShinyEntry(
                     posJson.get("z").asInt
                 )
 
-                val itemJson = json.getAsJsonObject("rewardItem")
-                val rewardItem = deserializeItemStack(world, itemJson)
+                val rewardItems = mutableListOf<ItemStack>()
+                
+                // Support both old format (rewardItem) and new format (rewardItems)
+                if (json.has("rewardItems")) {
+                    val itemsArray = json.getAsJsonArray("rewardItems")
+                    itemsArray.forEach { element ->
+                        val itemStack = deserializeItemStack(world, element.asJsonObject)
+                        if (!itemStack.isEmpty) {
+                            rewardItems.add(itemStack)
+                        }
+                    }
+                } else if (json.has("rewardItem")) {
+                    // Backward compatibility with old single-item format
+                    val itemJson = json.getAsJsonObject("rewardItem")
+                    val rewardItem = deserializeItemStack(world, itemJson)
+                    if (!rewardItem.isEmpty) {
+                        rewardItems.add(rewardItem)
+                    }
+                }
 
                 val claimedArray = json.getAsJsonArray("claimedPlayers")
                 val claimedPlayers = mutableSetOf<UUID>()
@@ -116,7 +135,7 @@ data class OhhShinyEntry(
                     } catch (_: Exception) {}
                 }
 
-                return OhhShinyEntry(world, position, rewardItem, claimedPlayers)
+                return OOHSHINYEntry(world, position, rewardItems, claimedPlayers)
             } catch (e: Exception) {
                 return null
             }

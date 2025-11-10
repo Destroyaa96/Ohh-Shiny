@@ -1,4 +1,4 @@
-package net.oohshiny.commands
+package net.OOHSHINY.commands
 
 import com.mojang.authlib.GameProfile
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
@@ -14,9 +14,9 @@ import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
-import net.oohshiny.OhhShinyManager
-import net.oohshiny.util.OhhShinyMessages
-import net.oohshiny.util.LuckPermsUtil
+import net.OOHSHINY.OOHSHINYManager
+import net.OOHSHINY.util.OOHSHINYMessages
+import net.OOHSHINY.util.LuckPermsUtil
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap
  * - /oohshiny reset <player> - Reset a player's claim history
  * - /oohshiny clearall - Delete all rewards (requires confirmation)
  */
-object OhhShinyCommand {
+object OOHSHINYCommand {
     
     // Track pending confirmations for destructive commands to prevent accidental data loss
     private val pendingConfirmations: MutableMap<String, Long> = ConcurrentHashMap()
@@ -42,10 +42,10 @@ object OhhShinyCommand {
         // /oohshiny set - Enter setup mode
         root.then(
             literal("set")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_SET) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_SET) }
                 .executes { context ->
                     val player = context.source.playerOrThrow
-                    OhhShinyManager.enableSetupMode(player)
+                    OOHSHINYManager.enableSetupMode(player)
                     1
                 }
         )
@@ -53,10 +53,10 @@ object OhhShinyCommand {
         // /oohshiny remove - Enter remove mode
         root.then(
             literal("remove")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_REMOVE) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_REMOVE) }
                 .executes { context ->
                     val player = context.source.playerOrThrow
-                    OhhShinyManager.enableRemoveMode(player)
+                    OOHSHINYManager.enableRemoveMode(player)
                     1
                 }
         )
@@ -64,7 +64,7 @@ object OhhShinyCommand {
         // /oohshiny give - Give special items
         root.then(
             literal("give")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_GIVE) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_GIVE) }
                 .then(
                     // /oohshiny give chest <type>
                     literal("chest")
@@ -120,21 +120,21 @@ object OhhShinyCommand {
         // /oohshiny list - List all Ooh Shiny entries
         root.then(
             literal("list")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_LIST) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_LIST) }
                 .executes { context ->
                     val server = context.source.server
-                    val entries = OhhShinyManager.getAllLootEntries(server)
+                    val entries = OOHSHINYManager.getAllLootEntries(server)
                     
                     if (entries.isEmpty()) {
-                        context.source.sendFeedback({ OhhShinyMessages.noLootEntries() }, false)
+                        context.source.sendFeedback({ OOHSHINYMessages.noLootEntries() }, false)
                     } else {
-                        context.source.sendFeedback({ OhhShinyMessages.lootListHeader(entries.size) }, false)
+                        context.source.sendFeedback({ OOHSHINYMessages.lootListHeader(entries.size) }, false)
                         
                         entries.values.forEach { entry ->
-                            val itemName = entry.rewardItem.name.string
+                            val itemNames = entry.rewardItems.joinToString(", ") { it.name.string }
                             val claimedCount = entry.claimedPlayers.size
                             context.source.sendFeedback({ 
-                                OhhShinyMessages.lootListEntry(entry.position, entry.dimension, itemName, claimedCount, context.source) 
+                                OOHSHINYMessages.lootListEntry(entry.position, entry.dimension, itemNames, claimedCount, context.source) 
                             }, false)
                         }
                     }
@@ -145,11 +145,11 @@ object OhhShinyCommand {
         // /oohshiny reload - Reload Ooh Shiny data
         root.then(
             literal("reload")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_RELOAD) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_RELOAD) }
                 .executes { context ->
                     val server = context.source.server
-                    val count = OhhShinyManager.reloadData(server)
-                    context.source.sendFeedback({ OhhShinyMessages.dataReloaded(count) }, false)
+                    val count = OOHSHINYManager.reloadData(server)
+                    context.source.sendFeedback({ OOHSHINYMessages.dataReloaded(count) }, false)
                     1
                 }
         )
@@ -157,9 +157,9 @@ object OhhShinyCommand {
         // /oohshiny reloadlang - Reload language file
         root.then(
             literal("reloadlang")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_RELOAD) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_RELOAD) }
                 .executes { context ->
-                    net.oohshiny.util.LangManager.reload()
+                    net.OOHSHINY.util.LangManager.reload()
                     context.source.sendFeedback({ 
                         Text.literal("Language file reloaded").formatted(net.minecraft.util.Formatting.GREEN) 
                     }, false)
@@ -170,7 +170,7 @@ object OhhShinyCommand {
         // /oohshiny reset <player> - Reset player's claims
         root.then(
             literal("reset")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_RESET) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_RESET) }
                 .then(
                     argument("target", GameProfileArgumentType.gameProfile())
                         .executes { context ->
@@ -178,16 +178,16 @@ object OhhShinyCommand {
                             val targetProfiles = GameProfileArgumentType.getProfileArgument(context, "target")
                             
                             if (targetProfiles.isEmpty()) {
-                                context.source.sendFeedback({ OhhShinyMessages.noPlayerFound() }, false)
+                                context.source.sendFeedback({ OOHSHINYMessages.noPlayerFound() }, false)
                                 return@executes 0
                             }
                             
                             val targetProfile = targetProfiles.first()
-                            val resetCount = OhhShinyManager.resetPlayerClaims(server, targetProfile.id)
+                            val resetCount = OOHSHINYManager.resetPlayerClaims(server, targetProfile.id)
                             val playerName = targetProfile.name ?: targetProfile.id.toString()
                             
                             context.source.sendFeedback({ 
-                                OhhShinyMessages.playerClaimsReset(playerName, resetCount) 
+                                OOHSHINYMessages.playerClaimsReset(playerName, resetCount) 
                             }, false)
                             1
                         }
@@ -197,7 +197,7 @@ object OhhShinyCommand {
         // /oohshiny clearall - Clear all Ooh Shiny data (with confirmation)
         root.then(
             literal("clearall")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OHHSHINY_CLEARALL) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_CLEARALL) }
                 .executes { context ->
                     val playerName = context.source.name
                     val currentTime = System.currentTimeMillis()
@@ -211,15 +211,15 @@ object OhhShinyCommand {
                     if (pendingConfirmations.containsKey(confirmationKey)) {
                         // Second execution within 30 seconds - proceed with deletion
                         val server = context.source.server
-                        val count = OhhShinyManager.clearAllData(server)
+                        val count = OOHSHINYManager.clearAllData(server)
                         
-                        context.source.sendFeedback({ OhhShinyMessages.allDataCleared(count) }, false)
+                        context.source.sendFeedback({ OOHSHINYMessages.allDataCleared(count) }, false)
                         pendingConfirmations.remove(confirmationKey)
                     } else {
                         // First execution - request confirmation by running the command again
                         pendingConfirmations[confirmationKey] = currentTime
                         context.source.sendFeedback({ 
-                            OhhShinyMessages.confirmationRequired("/oohshiny clearall")
+                            OOHSHINYMessages.confirmationRequired("/oohshiny clearall")
                         }, false)
                     }
                     1
@@ -255,7 +255,7 @@ object OhhShinyCommand {
             player.dropItem(chestItem, false)
         }
         
-        source.sendFeedback({ OhhShinyMessages.itemGiven(name) }, false)
+        source.sendFeedback({ OOHSHINYMessages.itemGiven(name) }, false)
     }
     
     /**
@@ -286,7 +286,7 @@ object OhhShinyCommand {
             player.dropItem(pokeballItem, false)
         }
         
-        source.sendFeedback({ OhhShinyMessages.itemGiven(name) }, false)
+        source.sendFeedback({ OOHSHINYMessages.itemGiven(name) }, false)
     }
     
     

@@ -1,4 +1,4 @@
-package net.oohshiny.util
+package net.OOHSHINY.util
 
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
@@ -7,7 +7,7 @@ import net.minecraft.server.network.ServerPlayerEntity
 import org.slf4j.LoggerFactory
 
 object LuckPermsUtil {
-    private val logger = LoggerFactory.getLogger("oohshiny-luckperms")
+    private val logger = LoggerFactory.getLogger("OOHSHINY-luckperms")
     private var luckPerms: LuckPerms? = null
     private var initialized = false
     
@@ -64,18 +64,18 @@ object LuckPermsUtil {
     
     // Permission constants for Ooh Shiny
     object Permissions {
-        const val BASE = "oohshiny.admin"
+        const val BASE = "OOHSHINY.admin"
         
         // Ooh Shiny permissions
-        const val OHHSHINY_BASE = "oohshiny"
-        const val OHHSHINY_SET = "oohshiny.command.set"
-        const val OHHSHINY_REMOVE = "oohshiny.command.remove"
-        const val OHHSHINY_LIST = "oohshiny.command.list"
-        const val OHHSHINY_RELOAD = "oohshiny.command.reload"
-        const val OHHSHINY_RESET = "oohshiny.command.reset"
-        const val OHHSHINY_CLEARALL = "oohshiny.command.clearall"
-        const val OHHSHINY_CLAIM = "oohshiny.claim"
-        const val OHHSHINY_TELEPORT = "oohshiny.command.teleport"
-        const val OHHSHINY_GIVE = "oohshiny.command.give"
+        const val OOHSHINY_BASE = "OOHSHINY"
+        const val OOHSHINY_SET = "OOHSHINY.command.set"
+        const val OOHSHINY_REMOVE = "OOHSHINY.command.remove"
+        const val OOHSHINY_LIST = "OOHSHINY.command.list"
+        const val OOHSHINY_RELOAD = "OOHSHINY.command.reload"
+        const val OOHSHINY_RESET = "OOHSHINY.command.reset"
+        const val OOHSHINY_CLEARALL = "OOHSHINY.command.clearall"
+        const val OOHSHINY_CLAIM = "OOHSHINY.claim"
+        const val OOHSHINY_TELEPORT = "OOHSHINY.command.teleport"
+        const val OOHSHINY_GIVE = "OOHSHINY.command.give"
     }
 }

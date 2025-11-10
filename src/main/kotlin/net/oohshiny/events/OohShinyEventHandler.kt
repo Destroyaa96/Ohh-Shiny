@@ -1,32 +1,32 @@
-package net.oohshiny.events
+package net.OOHSHINY.events
 
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.ActionResult
-import net.oohshiny.OhhShinyManager
-import net.oohshiny.util.OhhShinyMessages
-import net.oohshiny.util.LuckPermsUtil
+import net.OOHSHINY.OOHSHINYManager
+import net.OOHSHINY.util.OOHSHINYMessages
+import net.OOHSHINY.util.LuckPermsUtil
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import org.slf4j.LoggerFactory
-import net.oohshiny.util.OhhShinyParticles
+import net.OOHSHINY.util.OOHSHINYParticles
 
 /**
- * Handles all player interactions with blocks for Ohh Shiny functionality.
+ * Handles all player interactions with blocks for Ooh Shiny functionality.
  * 
  * Intercepts right-click events to:
  * - Allow admins in setup mode to create rewards
  * - Allow admins in remove mode to delete rewards  
  * - Allow players to claim rewards at marked locations
  * 
- * Also protects Ohh Shiny blocks from being broken.
+ * Also protects Ooh Shiny blocks from being broken.
  */
-object OhhShinyEventHandler {
-    private val logger = LoggerFactory.getLogger("oohshiny")
+object OOHSHINYEventHandler {
+    private val logger = LoggerFactory.getLogger("OOHSHINY")
     
     /**
-     * Registers all event listeners needed for Ohh Shiny functionality.
+     * Registers all event listeners needed for Ooh Shiny functionality.
      */
     fun register() {
         // Listen for block right-clicks to handle reward creation and claiming
@@ -47,7 +47,7 @@ object OhhShinyEventHandler {
             // Spawn particles for all nearby unclaimed rewards when player joins
             server.execute {
                 try {
-                    val allEntries = OhhShinyManager.getAllLootEntries(server)
+                    val allEntries = OOHSHINYManager.getAllLootEntries(server)
                     val playerPos = player.blockPos
                     val playerWorld = player.serverWorld
                     
@@ -62,7 +62,7 @@ object OhhShinyEventHandler {
                             // Only spawn particles if player is within 16 blocks
                             val distance = playerPos.getSquaredDistance(entry.position)
                             if (distance <= 16.0 * 16.0) {
-                                OhhShinyParticles.spawnParticlesAt(entry)
+                                OOHSHINYParticles.spawnParticlesAt(entry)
                             }
                         } catch (e: Exception) {
                             // Silently skip rewards in unloaded chunks
@@ -76,22 +76,22 @@ object OhhShinyEventHandler {
         
         // Clean up mode tracking when players disconnect
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
-            OhhShinyManager.onPlayerDisconnect(handler.player.uuid)
+            OOHSHINYManager.onPlayerDisconnect(handler.player.uuid)
         }
         
-        // Protect Ohh Shiny blocks from being broken
+        // Protect Ooh Shiny blocks from being broken
         // Using AttackBlockCallback which fires when player starts breaking (left-click)
         // This prevents the break from even starting, avoiding client desync
         AttackBlockCallback.EVENT.register { player, world, hand, pos, direction ->
             // Only check on server side with actual players
             if (!world.isClient && player is ServerPlayerEntity) {
-                // Check if this block has an Ohh Shiny entry
-                val entry = OhhShinyManager.getLootEntry(player.server, world.registryKey, pos)
+                // Check if this block has an Ooh Shiny entry
+                val entry = OOHSHINYManager.getLootEntry(player.server, world.registryKey, pos)
                 
                 if (entry != null) {
-                    // Block has Ohh Shiny data - prevent breaking and notify player
-                    player.sendMessage(OhhShinyMessages.blockProtected(player), false)
-                    logger.info("Blocked player ${player.nameForScoreboard} from attacking Ohh Shiny at $pos")
+                    // Block has Ooh Shiny data - prevent breaking and notify player
+                    player.sendMessage(OOHSHINYMessages.blockProtected(player), false)
+                    logger.info("Blocked player ${player.nameForScoreboard} from attacking Ooh Shiny at $pos")
                     return@register ActionResult.FAIL // FAIL cancels the attack
                 }
             }
@@ -117,35 +117,35 @@ object OhhShinyEventHandler {
         val dimension = world.registryKey
         
         // Priority 1: Admin in setup mode creates a reward here
-        if (OhhShinyManager.isInSetupMode(player)) {
+        if (OOHSHINYManager.isInSetupMode(player)) {
             // Double-check permissions for security
-            if (!LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OHHSHINY_SET)) {
-                player.sendMessage(OhhShinyMessages.noPermission(LuckPermsUtil.Permissions.OHHSHINY_SET), false)
+            if (!LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OOHSHINY_SET)) {
+                player.sendMessage(OOHSHINYMessages.noPermission(LuckPermsUtil.Permissions.OOHSHINY_SET), false)
                 return ActionResult.FAIL
             }
             
             val heldItem = player.mainHandStack
-            val success = OhhShinyManager.createLootEntry(player, dimension, position, heldItem)
+            val success = OOHSHINYManager.createLootEntry(player, dimension, position, heldItem)
             
             return if (success) ActionResult.SUCCESS else ActionResult.FAIL
         }
         
         // Priority 2: Admin in remove mode deletes a reward here
-        if (OhhShinyManager.isInRemoveMode(player)) {
+        if (OOHSHINYManager.isInRemoveMode(player)) {
             // Double-check permissions for security
-            if (!LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OHHSHINY_REMOVE)) {
-                player.sendMessage(OhhShinyMessages.noPermission(LuckPermsUtil.Permissions.OHHSHINY_REMOVE), false)
+            if (!LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OOHSHINY_REMOVE)) {
+                player.sendMessage(OOHSHINYMessages.noPermission(LuckPermsUtil.Permissions.OOHSHINY_REMOVE), false)
                 return ActionResult.FAIL
             }
             
-            val success = OhhShinyManager.removeLootEntry(player, dimension, position)
+            val success = OOHSHINYManager.removeLootEntry(player, dimension, position)
             
             return if (success) ActionResult.SUCCESS else ActionResult.FAIL
         }
         
         // Priority 3: Player tries to claim a reward here
-        if (LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OHHSHINY_CLAIM)) {
-            val success = OhhShinyManager.claimLoot(player, dimension, position)
+        if (LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OOHSHINY_CLAIM)) {
+            val success = OOHSHINYManager.claimLoot(player, dimension, position)
             
             // SUCCESS cancels the event and prevents normal block interactions (like opening chests)
             // PASS allows normal block interactions to continue if there was no reward here

@@ -1,4 +1,4 @@
-package net.oohshiny.util
+package net.OOHSHINY.util
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -18,7 +18,7 @@ import java.io.FileWriter
  * - Hot-reloading of language files
  */
 object LangManager {
-    private val logger = LoggerFactory.getLogger("oohshiny-lang")
+    private val logger = LoggerFactory.getLogger("OOHSHINY-lang")
     private val gson: Gson = GsonBuilder()
         .setPrettyPrinting()
         .disableHtmlEscaping()  // Prevent escaping < and > to \u003c and \u003e
@@ -131,6 +131,8 @@ object LangManager {
             // Success messages
             "loot.created" to "<green>Loot set at [{x}, {y}, {z}] in {dimension} with {item}",
             "loot.claimed" to "<aqua>You found something shiny: {item}!",
+            "loot.claimed.multiple" to "<aqua>You found {count} shiny items: {items}!",
+            "loot.item_added" to "<green>Added {item} to loot at [{x}, {y}, {z}] (total items: {total})",
             "loot.removed" to "<green>Removed loot at [{x}, {y}, {z}] in {dimension}",
             
             // Setup mode messages
@@ -162,7 +164,7 @@ object LangManager {
             "admin.given" to "<green>Given {item}",
             
             // Prefix - supports Simplified Text Format and placeholders
-            "prefix" to "<rb>[Ohh Shiny]</rb>",
+            "prefix" to "<rb>[Ooh Shiny]</rb>",
             
             // You can use:
             // - Simplified Text Format: <red>, <bold>, <gradient:blue:aqua>, <rainbow>, <rb> (rainbow bold), etc.
