@@ -18,6 +18,8 @@ import net.OOHSHINY.OOHSHINYManager
 import net.OOHSHINY.util.OOHSHINYMessages
 import net.OOHSHINY.util.LuckPermsUtil
 import java.util.concurrent.ConcurrentHashMap
+import net.minecraft.util.Formatting
+import net.minecraft.command.CommandSource
 
 /**
  * Command handler for /oohshiny and all its subcommands.
@@ -39,15 +41,63 @@ object OOHSHINYCommand {
     
     fun register(root: LiteralArgumentBuilder<ServerCommandSource>) {
         
-        // /oohshiny set - Enter setup mode
+        // /oohshiny create <category> - Create a new category
+        root.then(
+            literal("create")
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_SET) }
+                .then(
+                    argument("category", StringArgumentType.word())
+                        .executes { context ->
+                            val server = context.source.server
+                            val category = StringArgumentType.getString(context, "category")
+                            
+                            OOHSHINYManager.createCategory(server, category)
+                            context.source.sendFeedback({ 
+                                Text.literal("Created category: $category").formatted(net.minecraft.util.Formatting.GREEN)
+                            }, false)
+                            1
+                        }
+                )
+        )
+        
+        // /oohshiny set [category] - Enter setup mode with optional category
         root.then(
             literal("set")
                 .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_SET) }
                 .executes { context ->
                     val player = context.source.playerOrThrow
-                    OOHSHINYManager.enableSetupMode(player)
+                    OOHSHINYManager.enableSetupMode(player, "default")
                     1
                 }
+                .then(
+                    argument("category", StringArgumentType.word())
+                        .suggests { context, builder ->
+                            val server = context.source.server
+                            val categories = OOHSHINYManager.getCategories(server)
+                            CommandSource.suggestMatching(categories, builder)
+                        }
+                        .executes { context ->
+                            val player = context.source.playerOrThrow
+                            val category = StringArgumentType.getString(context, "category")
+                            val server = context.source.server
+                            val categories = OOHSHINYManager.getCategories(server)
+                            
+                            // Validate category exists
+                            if (!categories.contains(category)) {
+                                context.source.sendError(
+                                    Text.literal("Unknown category: $category. Use /oohshiny create <category> to create it first.")
+                                        .formatted(Formatting.RED)
+                                )
+                                return@executes 0
+                            }
+                            
+                            OOHSHINYManager.enableSetupMode(player, category)
+                            context.source.sendFeedback({
+                                Text.literal("Setup mode enabled for category: $category").formatted(Formatting.GREEN)
+                            }, false)
+                            1
+                        }
+                )
         )
         
         // /oohshiny remove - Enter remove mode
@@ -117,49 +167,38 @@ object OOHSHINYCommand {
                 )
         )
         
-        // /oohshiny list - List all Ooh Shiny entries
+        // /oohshiny list [category] - List all Ooh Shiny entries (optionally by category)
         root.then(
             literal("list")
                 .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_LIST) }
                 .executes { context ->
-                    val server = context.source.server
-                    val entries = OOHSHINYManager.getAllLootEntries(server)
-                    
-                    if (entries.isEmpty()) {
-                        context.source.sendFeedback({ OOHSHINYMessages.noLootEntries() }, false)
-                    } else {
-                        context.source.sendFeedback({ OOHSHINYMessages.lootListHeader(entries.size) }, false)
-                        
-                        entries.values.forEach { entry ->
-                            val itemNames = entry.rewardItems.joinToString(", ") { it.name.string }
-                            val claimedCount = entry.claimedPlayers.size
-                            context.source.sendFeedback({ 
-                                OOHSHINYMessages.lootListEntry(entry.position, entry.dimension, itemNames, claimedCount, context.source) 
-                            }, false)
-                        }
-                    }
+                    displayLootList(context.source, null)
                     1
                 }
+                .then(
+                    argument("category", StringArgumentType.word())
+                        .suggests { context, builder ->
+                            val server = context.source.server
+                            val categories = OOHSHINYManager.getCategories(server)
+                            CommandSource.suggestMatching(categories, builder)
+                        }
+                        .executes { context ->
+                            val category = StringArgumentType.getString(context, "category")
+                            displayLootList(context.source, category)
+                            1
+                        }
+                )
         )
         
-        // /oohshiny reload - Reload Ooh Shiny data
+        // /oohshiny reload - Reload Ooh Shiny data and language files
         root.then(
             literal("reload")
                 .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_RELOAD) }
                 .executes { context ->
                     val server = context.source.server
                     val count = OOHSHINYManager.reloadData(server)
-                    context.source.sendFeedback({ OOHSHINYMessages.dataReloaded(count) }, false)
-                    1
-                }
-        )
-        
-        // /oohshiny reloadlang - Reload language file
-        root.then(
-            literal("reloadlang")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_RELOAD) }
-                .executes { context ->
                     net.OOHSHINY.util.LangManager.reload()
+                    context.source.sendFeedback({ OOHSHINYMessages.dataReloaded(count) }, false)
                     context.source.sendFeedback({ 
                         Text.literal("Language file reloaded").formatted(net.minecraft.util.Formatting.GREEN) 
                     }, false)
@@ -225,6 +264,73 @@ object OOHSHINYCommand {
                     1
                 }
         )
+    }
+    
+    /**
+     * Displays loot list, optionally filtered by category.
+     */
+    private fun displayLootList(source: ServerCommandSource, filterCategory: String?) {
+        val server = source.server
+        val categories = OOHSHINYManager.getCategories(server)
+        
+        // Validate category if specified
+        if (filterCategory != null && !categories.contains(filterCategory)) {
+            source.sendError(
+                Text.literal("Unknown category: $filterCategory")
+                    .formatted(Formatting.RED)
+            )
+            return
+        }
+        
+        val allEntries = OOHSHINYManager.getAllLootEntries(server)
+        
+        if (allEntries.isEmpty()) {
+            source.sendFeedback({ OOHSHINYMessages.noLootEntries() }, false)
+            return
+        }
+        
+        if (filterCategory == null) {
+            // Show all entries grouped by category
+            source.sendFeedback({ OOHSHINYMessages.lootListHeader(allEntries.size) }, false)
+            
+            categories.forEach { category ->
+                val categoryEntries = allEntries.values.filter { it.category == category }
+                if (categoryEntries.isNotEmpty()) {
+                    source.sendFeedback({
+                        Text.literal("\n[Category: $category]").formatted(Formatting.AQUA, Formatting.BOLD)
+                    }, false)
+                    
+                    categoryEntries.forEach { entry ->
+                        val itemNames = entry.rewardItems.joinToString(", ") { it.name.string }
+                        val claimedCount = entry.claimedPlayers.size
+                        source.sendFeedback({ 
+                            OOHSHINYMessages.lootListEntry(entry.position, entry.dimension, itemNames, claimedCount, source) 
+                        }, false)
+                    }
+                }
+            }
+        } else {
+            // Show only entries from specified category
+            val categoryEntries = allEntries.values.filter { it.category == filterCategory }
+            
+            if (categoryEntries.isEmpty()) {
+                source.sendFeedback({ 
+                    Text.literal("No loot entries found in category: $filterCategory").formatted(Formatting.YELLOW)
+                }, false)
+            } else {
+                source.sendFeedback({ 
+                    Text.literal("Loot entries in category '$filterCategory': ${categoryEntries.size}").formatted(Formatting.GREEN)
+                }, false)
+                
+                categoryEntries.forEach { entry ->
+                    val itemNames = entry.rewardItems.joinToString(", ") { it.name.string }
+                    val claimedCount = entry.claimedPlayers.size
+                    source.sendFeedback({ 
+                        OOHSHINYMessages.lootListEntry(entry.position, entry.dimension, itemNames, claimedCount, source) 
+                    }, false)
+                }
+            }
+        }
     }
     
     /**

@@ -18,7 +18,7 @@ import java.io.FileWriter
  * - Hot-reloading of language files
  */
 object LangManager {
-    private val logger = LoggerFactory.getLogger("OOHSHINY-lang")
+    private val logger = LoggerFactory.getLogger("oohshiny")
     private val gson: Gson = GsonBuilder()
         .setPrettyPrinting()
         .disableHtmlEscaping()  // Prevent escaping < and > to \u003c and \u003e

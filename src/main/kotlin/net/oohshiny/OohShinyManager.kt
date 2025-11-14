@@ -24,29 +24,26 @@ import java.util.concurrent.ConcurrentHashMap
  * - Data persistence and reloading
  */
 object OOHSHINYManager {
-    private val logger = LoggerFactory.getLogger("OOHSHINY")
+    private val logger = LoggerFactory.getLogger("oohshiny")
     
     // Track which players are currently in setup or remove mode (for admin operations)
     private val playersInSetupMode: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
     private val playersInRemoveMode: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
     
-    /**
-     * Gets the singleton state object that manages all reward data.
-     */
-    private fun getState(server: MinecraftServer): OOHSHINYState {
-        return OOHSHINYState
-    }
+    // Track active category for each player in setup mode
+    private val playerActiveCategory: MutableMap<UUID, String> = ConcurrentHashMap()
     
     /**
-     * Enables setup mode for an admin player.
+     * Enables setup mode for an admin player with a specified category.
      * While in setup mode, the next block they right-click will become a reward location.
      */
-    fun enableSetupMode(player: ServerPlayerEntity) {
+    fun enableSetupMode(player: ServerPlayerEntity, category: String = "default") {
         playersInSetupMode.add(player.uuid)
         playersInRemoveMode.remove(player.uuid) // Ensure player is not in both modes at once
-        player.sendMessage(OOHSHINYMessages.setupModeEnabled(), false)
+        playerActiveCategory[player.uuid] = category
+        player.sendMessage(OOHSHINYMessages.setupModeEnabled(category), false)
         
-        logger.info("Player ${player.nameForScoreboard} entered Ooh Shiny setup mode")
+        logger.info("Player ${player.nameForScoreboard} entered Ooh Shiny setup mode with category: $category")
     }
     
     /**
@@ -67,6 +64,7 @@ object OOHSHINYManager {
     fun disableMode(player: ServerPlayerEntity) {
         val wasInSetup = playersInSetupMode.remove(player.uuid)
         val wasInRemove = playersInRemoveMode.remove(player.uuid)
+        playerActiveCategory.remove(player.uuid)
         
         if (wasInSetup) {
             player.sendMessage(OOHSHINYMessages.setupModeDisabled(), false)
@@ -90,6 +88,13 @@ object OOHSHINYManager {
     }
     
     /**
+     * Gets the active category for a player in setup mode.
+     */
+    fun getActiveCategory(player: ServerPlayerEntity): String {
+        return playerActiveCategory[player.uuid] ?: "default"
+    }
+    
+    /**
      * Creates a new Ooh Shiny reward at the specified location.
      * 
      * Called when an admin in setup mode right-clicks a block. The item in their main hand
@@ -110,7 +115,7 @@ object OOHSHINYManager {
         }
         
         val server = player.server
-        val state = getState(server)
+        val state = OOHSHINYState
         
         // Retrieve the world instance for this dimension
         val serverWorld = server.getWorld(dimension) ?: run {
@@ -120,6 +125,9 @@ object OOHSHINYManager {
         
         // Make a copy of the held item to store as the reward
         val rewardItem = heldItem.copy()
+        
+        // Get the active category for this player
+        val category = getActiveCategory(player)
         
         // Check if a loot entry already exists at this location
         val existingEntry = state.getLootEntry(dimension, position)
@@ -134,15 +142,15 @@ object OOHSHINYManager {
             
             // Notify the admin that item was added
             val itemName = rewardItem.name.string
-            player.sendMessage(OOHSHINYMessages.itemAddedToLoot(position, dimension, itemName, existingEntry.rewardItems.size), false)
+            player.sendMessage(OOHSHINYMessages.itemAddedToLoot(position, dimension, itemName, existingEntry.rewardItems.size, existingEntry.category), false)
             
             // Log the addition for server admins
             logger.info(
                 "Player ${player.nameForScoreboard} added item to Ooh Shiny at ${dimension.value} [${position.x}, ${position.y}, ${position.z}]: ${itemName} (total items: ${existingEntry.rewardItems.size})"
             )
         } else {
-            // Create a new reward entry
-            val entry = OOHSHINYEntry(serverWorld, position, mutableListOf(rewardItem))
+            // Create a new reward entry with the active category
+            val entry = OOHSHINYEntry(serverWorld, position, mutableListOf(rewardItem), mutableSetOf(), category)
             state.addLootEntry(entry)
             
             // Show visual feedback at the location
@@ -150,7 +158,7 @@ object OOHSHINYManager {
             
             // Notify the admin of successful creation
             val itemName = rewardItem.name.string
-            player.sendMessage(OOHSHINYMessages.lootCreated(position, dimension, itemName), false)
+            player.sendMessage(OOHSHINYMessages.lootCreated(position, dimension, itemName, category), false)
             
             // Log the creation for server admins
             logger.info(
@@ -179,7 +187,7 @@ object OOHSHINYManager {
         position: BlockPos
     ): Boolean {
         val server = player.server
-        val state = getState(server)
+        val state = OOHSHINYState
         
         val removedEntry = state.removeLootEntry(dimension, position)
         
@@ -219,7 +227,7 @@ object OOHSHINYManager {
         position: BlockPos
     ): Boolean {
         val server = player.server
-        val state = getState(server)
+        val state = OOHSHINYState
         
         val entry = state.getLootEntry(dimension, position) ?: return false
         
@@ -263,21 +271,21 @@ object OOHSHINYManager {
      * Used for block protection checks.
      */
     fun getLootEntry(server: MinecraftServer, dimension: RegistryKey<World>, position: BlockPos): OOHSHINYEntry? {
-        return getState(server).getLootEntry(dimension, position)
+        return OOHSHINYState.getLootEntry(dimension, position)
     }
     
     /**
      * Retrieves all reward entries for display in the list command.
      */
     fun getAllLootEntries(server: MinecraftServer): Map<String, OOHSHINYEntry> {
-        return getState(server).getAllLootEntries()
+        return OOHSHINYState.getAllLootEntries()
     }
     
     /**
      * Returns the total number of active reward locations.
      */
     fun getLootCount(server: MinecraftServer): Int {
-        return getState(server).getEntryCount()
+        return OOHSHINYState.getEntryCount()
     }
     
     /**
@@ -285,8 +293,8 @@ object OOHSHINYManager {
      * Useful for applying manual changes or recovering from errors.
      */
     fun reloadData(server: MinecraftServer): Int {
-        val state = getState(server)
-        state.reload(server)
+        OOHSHINYState.reload(server)
+        val state = OOHSHINYState
         val count = state.getEntryCount()
         
         logger.info("Ooh Shiny data reloaded from disk: ${count} entries")
@@ -300,7 +308,7 @@ object OOHSHINYManager {
      * @return The number of rewards that were reset for this player
      */
     fun resetPlayerClaims(server: MinecraftServer, targetPlayerUuid: UUID): Int {
-        val state = getState(server)
+        val state = OOHSHINYState
         var resetCount = 0
         
         // Remove this player from all claim records
@@ -326,7 +334,7 @@ object OOHSHINYManager {
      * @return The number of rewards that were deleted
      */
     fun clearAllData(server: MinecraftServer): Int {
-        val state = getState(server)
+        val state = OOHSHINYState
         val count = state.getEntryCount()
         
         state.clearAllEntries()
@@ -342,5 +350,20 @@ object OOHSHINYManager {
     fun onPlayerDisconnect(playerUuid: UUID) {
         playersInSetupMode.remove(playerUuid)
         playersInRemoveMode.remove(playerUuid)
+        playerActiveCategory.remove(playerUuid)
+    }
+    
+    /**
+     * Creates a new category.
+     */
+    fun createCategory(server: MinecraftServer, category: String) {
+        OOHSHINYState.createCategory(category)
+    }
+    
+    /**
+     * Gets all available categories.
+     */
+    fun getCategories(server: MinecraftServer): Set<String> {
+        return OOHSHINYState.getCategories()
     }
 }

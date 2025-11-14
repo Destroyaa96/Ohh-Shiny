@@ -34,13 +34,14 @@ object OOHSHINYMessages {
     }
     
     // Success messages (Green/Aqua)
-    fun lootCreated(position: BlockPos, dimension: RegistryKey<World>, itemName: String): Text {
+    fun lootCreated(position: BlockPos, dimension: RegistryKey<World>, itemName: String, category: String = "default"): Text {
         val message = LangManager.getMessage("loot.created", mapOf(
             "x" to position.x.toString(),
             "y" to position.y.toString(),
             "z" to position.z.toString(),
             "dimension" to dimension.value.toString(),
-            "item" to itemName
+            "item" to itemName,
+            "category" to category
         ))
         return createText(message)
     }
@@ -63,14 +64,15 @@ object OOHSHINYMessages {
         return createText(message, player)
     }
     
-    fun itemAddedToLoot(position: BlockPos, dimension: RegistryKey<World>, itemName: String, totalItems: Int): Text {
+    fun itemAddedToLoot(position: BlockPos, dimension: RegistryKey<World>, itemName: String, totalItems: Int, category: String = "default"): Text {
         val message = LangManager.getMessage("loot.item_added", mapOf(
             "x" to position.x.toString(),
             "y" to position.y.toString(),
             "z" to position.z.toString(),
             "dimension" to dimension.value.toString(),
             "item" to itemName,
-            "total" to totalItems.toString()
+            "total" to totalItems.toString(),
+            "category" to category
         ))
         return createText(message)
     }
@@ -86,8 +88,8 @@ object OOHSHINYMessages {
     }
     
     // Setup mode messages (Yellow)
-    fun setupModeEnabled(): Text {
-        val message = LangManager.getMessage("setup.enabled")
+    fun setupModeEnabled(category: String = "default"): Text {
+        val message = LangManager.getMessage("setup.enabled", mapOf("category" to category))
         return createText(message)
     }
     
@@ -132,7 +134,7 @@ object OOHSHINYMessages {
         val coordText = "[${position.x}, ${position.y}, ${position.z}]"
         val hasTeleportPerm = LuckPermsUtil.hasPermission(source, LuckPermsUtil.Permissions.OOHSHINY_TELEPORT)
         
-        val message = Text.literal("• ")
+        val message = Text.literal("- ")
         
         if (hasTeleportPerm) {
             // Make coordinates clickable with teleport command

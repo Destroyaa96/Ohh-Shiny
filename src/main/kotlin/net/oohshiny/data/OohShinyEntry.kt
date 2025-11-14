@@ -23,7 +23,8 @@ data class OOHSHINYEntry(
     val world: ServerWorld,
     val position: BlockPos,
     val rewardItems: MutableList<ItemStack>,
-    val claimedPlayers: MutableSet<UUID> = mutableSetOf()
+    val claimedPlayers: MutableSet<UUID> = mutableSetOf(),
+    val category: String = "default"
 ) {
 
     /** Convenience property to get the dimension key from the world */
@@ -46,6 +47,7 @@ data class OOHSHINYEntry(
     fun writeToJson(): JsonObject {
         val json = JsonObject()
         json.addProperty("dimension", dimension.value.toString())
+        // Don't write category field - it's redundant since entries are organized under category keys
 
         val posJson = JsonObject().apply {
             addProperty("x", position.x)
@@ -97,8 +99,9 @@ data class OOHSHINYEntry(
         /**
          * Deserializes an OOHSHINYEntry from JSON.
          * Returns null if the data is malformed or cannot be parsed.
+         * @param category The category this entry belongs to (from parent key)
          */
-        fun readFromJson(world: ServerWorld, json: JsonObject): OOHSHINYEntry? {
+        fun readFromJson(world: ServerWorld, json: JsonObject, category: String = "default"): OOHSHINYEntry? {
             try {
                 val posJson = json.getAsJsonObject("position")
                 val position = BlockPos(
@@ -135,7 +138,15 @@ data class OOHSHINYEntry(
                     } catch (_: Exception) {}
                 }
 
-                return OOHSHINYEntry(world, position, rewardItems, claimedPlayers)
+                // Category is passed as parameter from parent key in new format
+                // Old format may have category field which takes precedence
+                val entryCategory = if (json.has("category")) {
+                    json.get("category").asString
+                } else {
+                    category
+                }
+
+                return OOHSHINYEntry(world, position, rewardItems, claimedPlayers, entryCategory)
             } catch (e: Exception) {
                 return null
             }

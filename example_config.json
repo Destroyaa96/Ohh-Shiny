@@ -1,0 +1,72 @@
+{
+  "default": {
+    "minecraft:overworld|100|64|200": {
+      "dimension": "minecraft:overworld",
+      "position": {
+        "x": 100,
+        "y": 64,
+        "z": 200
+      },
+      "rewardItems": [
+        {
+          "nbt": "{id:\"minecraft:diamond\",count:5}"
+        }
+      ],
+      "claimedPlayers": [
+        "550e8400-e29b-41d4-a716-446655440000"
+      ]
+    }
+  },
+  "winter": {
+    "minecraft:overworld|150|70|250": {
+      "dimension": "minecraft:overworld",
+      "position": {
+        "x": 150,
+        "y": 70,
+        "z": 250
+      },
+      "rewardItems": [
+        {
+          "nbt": "{id:\"minecraft:snowball\",count:16}"
+        },
+        {
+          "nbt": "{id:\"minecraft:ice\",count:32}"
+        }
+      ],
+      "claimedPlayers": []
+    },
+    "minecraft:overworld|-200|65|-150": {
+      "dimension": "minecraft:overworld",
+      "position": {
+        "x": -200,
+        "y": 65,
+        "z": -150
+      },
+      "rewardItems": [
+        {
+          "nbt": "{id:\"minecraft:packed_ice\",count:64}"
+        }
+      ],
+      "claimedPlayers": [
+        "550e8400-e29b-41d4-a716-446655440000",
+        "660e8400-e29b-41d4-a716-446655440001"
+      ]
+    }
+  },
+  "summer": {
+    "minecraft:overworld|300|80|400": {
+      "dimension": "minecraft:overworld",
+      "position": {
+        "x": 300,
+        "y": 80,
+        "z": 400
+      },
+      "rewardItems": [
+        {
+          "nbt": "{id:\"minecraft:sunflower\",count:10}"
+        }
+      ],
+      "claimedPlayers": []
+    }
+  }
+}

@@ -20,8 +20,8 @@ import java.io.File
  * by right-clicking blocks in the world. Each reward can only be claimed once per player.
  */
 object OOHSHINY : ModInitializer {
-    const val MOD_ID = "OOHSHINY"
-    val LOGGER = LoggerFactory.getLogger("OOHSHINY")
+    const val MOD_ID = "oohshiny"
+    val LOGGER = LoggerFactory.getLogger("oohshiny")
 
     override fun onInitialize() {
         LOGGER.info("Initializing Ooh Shiny mod")

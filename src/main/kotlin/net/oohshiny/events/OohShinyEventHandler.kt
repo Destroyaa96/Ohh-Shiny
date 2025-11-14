@@ -23,7 +23,7 @@ import net.OOHSHINY.util.OOHSHINYParticles
  * Also protects Ooh Shiny blocks from being broken.
  */
 object OOHSHINYEventHandler {
-    private val logger = LoggerFactory.getLogger("OOHSHINY")
+    private val logger = LoggerFactory.getLogger("oohshiny")
     
     /**
      * Registers all event listeners needed for Ooh Shiny functionality.
@@ -36,41 +36,6 @@ object OOHSHINYEventHandler {
                 handleBlockUse(player, hitResult)
             } else {
                 ActionResult.PASS
-            }
-        }
-        
-        // Spawn particles when players join to ensure they see them immediately
-        ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
-            val player = handler.player
-            val server = player.server
-            
-            // Spawn particles for all nearby unclaimed rewards when player joins
-            server.execute {
-                try {
-                    val allEntries = OOHSHINYManager.getAllLootEntries(server)
-                    val playerPos = player.blockPos
-                    val playerWorld = player.serverWorld
-                    
-                    for (entry in allEntries.values) {
-                        try {
-                            // Only spawn particles for rewards in the same dimension
-                            if (entry.world != playerWorld) continue
-                            
-                            // Only spawn particles if player hasn't claimed this reward
-                            if (entry.hasPlayerClaimed(player.uuid)) continue
-                            
-                            // Only spawn particles if player is within 16 blocks
-                            val distance = playerPos.getSquaredDistance(entry.position)
-                            if (distance <= 16.0 * 16.0) {
-                                OOHSHINYParticles.spawnParticlesAt(entry)
-                            }
-                        } catch (e: Exception) {
-                            // Silently skip rewards in unloaded chunks
-                        }
-                    }
-                } catch (e: Exception) {
-                    logger.error("Error spawning particles on player login", e)
-                }
             }
         }
         
@@ -118,28 +83,14 @@ object OOHSHINYEventHandler {
         
         // Priority 1: Admin in setup mode creates a reward here
         if (OOHSHINYManager.isInSetupMode(player)) {
-            // Double-check permissions for security
-            if (!LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OOHSHINY_SET)) {
-                player.sendMessage(OOHSHINYMessages.noPermission(LuckPermsUtil.Permissions.OOHSHINY_SET), false)
-                return ActionResult.FAIL
-            }
-            
             val heldItem = player.mainHandStack
             val success = OOHSHINYManager.createLootEntry(player, dimension, position, heldItem)
-            
             return if (success) ActionResult.SUCCESS else ActionResult.FAIL
         }
         
         // Priority 2: Admin in remove mode deletes a reward here
         if (OOHSHINYManager.isInRemoveMode(player)) {
-            // Double-check permissions for security
-            if (!LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OOHSHINY_REMOVE)) {
-                player.sendMessage(OOHSHINYMessages.noPermission(LuckPermsUtil.Permissions.OOHSHINY_REMOVE), false)
-                return ActionResult.FAIL
-            }
-            
             val success = OOHSHINYManager.removeLootEntry(player, dimension, position)
-            
             return if (success) ActionResult.SUCCESS else ActionResult.FAIL
         }
         

@@ -14,18 +14,19 @@ import java.io.FileWriter
 /**
  * Singleton object that manages persistent storage of all Ooh Shiny rewards.
  * 
- * Data is stored in JSON format at: config/OOHSHINY/OOHSHINY.json
+ * Data is stored in JSON format at: config/oohshiny/oohshiny.json
  * The file is automatically created on first use and updated whenever rewards are added/removed.
  */
 object OOHSHINYState {
-    private val logger = LoggerFactory.getLogger("OOHSHINY")
+    private val logger = LoggerFactory.getLogger("oohshiny")
     private val lootEntries: MutableMap<String, OOHSHINYEntry> = mutableMapOf()
     private val storageFile: File
+    private val categories: MutableSet<String> = mutableSetOf("default")
     
     init {
-        val configDir = FabricLoader.getInstance().configDir.resolve("OOHSHINY").toFile()
+        val configDir = FabricLoader.getInstance().configDir.resolve("oohshiny").toFile()
         if (!configDir.exists()) configDir.mkdirs()
-        storageFile = File(configDir, "OOHSHINY.json")
+        storageFile = File(configDir, "oohshiny.json")
         loadFromDisk()
     }
     
@@ -80,6 +81,26 @@ object OOHSHINYState {
     fun getEntryCount(): Int = lootEntries.size
     
     /**
+     * Creates a new category if it doesn't exist.
+     */
+    fun createCategory(category: String) {
+        categories.add(category)
+        saveToDisk()
+    }
+    
+    /**
+     * Returns all available categories.
+     */
+    fun getCategories(): Set<String> = categories.toSet()
+    
+    /**
+     * Returns all entries in a specific category.
+     */
+    fun getEntriesByCategory(category: String): Map<String, OOHSHINYEntry> {
+        return lootEntries.filter { it.value.category == category }
+    }
+    
+    /**
      * Marks data as modified and triggers a save to disk.
      * Used when claim data is updated without adding/removing entries.
      */
@@ -96,6 +117,20 @@ object OOHSHINYState {
     }
     
     /**
+     * Parses a dimension string into a world instance.
+     */
+    private fun parseDimension(dimensionStr: String, server: MinecraftServer?): net.minecraft.server.world.ServerWorld? {
+        if (server == null) return null
+        
+        val dimensionId = net.minecraft.util.Identifier.tryParse(dimensionStr)
+        val dimensionKey = net.minecraft.registry.RegistryKey.of(
+            net.minecraft.registry.RegistryKeys.WORLD,
+            dimensionId
+        )
+        return server.getWorld(dimensionKey)
+    }
+    
+    /**
      * Loads reward data from the JSON file on disk.
      * Requires a server instance to resolve world references.
      */
@@ -104,46 +139,101 @@ object OOHSHINYState {
         
         try {
             val reader = FileReader(storageFile)
-            val jsonObject = JsonParser.parseReader(reader).asJsonObject
+            val rootObject = JsonParser.parseReader(reader).asJsonObject
             reader.close()
             
-            for ((key, entryElement) in jsonObject.entrySet()) {
-                try {
-                    val entryObj = entryElement.asJsonObject
-                    
-                    // World instances are needed to deserialize ItemStacks, but aren't available during mod init
-                    // Data will be loaded on the first /OOHSHINY reload command after server starts
-                    if (server == null) {
-                        logger.warn("Cannot load Ooh Shiny entries without server context")
-                        continue
-                    }
-                    
-                    // Resolve the dimension to get the world instance
-                    val dimensionStr = entryObj.get("dimension").asString
-                    val dimensionId = net.minecraft.util.Identifier.tryParse(dimensionStr)
-                    val dimensionKey = net.minecraft.registry.RegistryKey.of(
-                        net.minecraft.registry.RegistryKeys.WORLD,
-                        dimensionId
-                    )
-                    val world = server.getWorld(dimensionKey)
-                    
-                    if (world == null) {
-                        logger.warn("Could not find world for dimension: $dimensionStr")
-                        continue
-                    }
-                    
-                    val entry = OOHSHINYEntry.readFromJson(world, entryObj)
-                    if (entry != null) {
-                        lootEntries[key] = entry
-                    } else {
-                        logger.warn("Failed to load Ooh Shiny entry with key: $key")
-                    }
-                } catch (e: Exception) {
-                    logger.warn("Failed to load Ooh Shiny entry for key $key", e)
+            // Check if this is the new category-first format
+            val isNewFormat = rootObject.entrySet().any { 
+                it.value.isJsonObject && it.value.asJsonObject.entrySet().any { entry ->
+                    entry.value.isJsonObject && entry.value.asJsonObject.has("dimension")
                 }
             }
             
-            logger.info("Loaded ${lootEntries.size} Ooh Shiny entries")
+            if (isNewFormat) {
+                // New format: categories -> entries
+                categories.clear()
+                
+                for ((category, categoryEntriesElement) in rootObject.entrySet()) {
+                    if (!categoryEntriesElement.isJsonObject) continue
+                    
+                    categories.add(category)
+                    val categoryEntries = categoryEntriesElement.asJsonObject
+                    
+                    for ((key, entryElement) in categoryEntries.entrySet()) {
+                        try {
+                            val entryObj = entryElement.asJsonObject
+                            
+                            if (server == null) {
+                                logger.warn("Cannot load Ooh Shiny entries without server context")
+                                continue
+                            }
+                            
+                            val dimensionStr = entryObj.get("dimension").asString
+                            val world = parseDimension(dimensionStr, server)
+                            
+                            if (world == null) {
+                                logger.warn("Could not find world for dimension: $dimensionStr")
+                                continue
+                            }
+                            
+                            val entry = OOHSHINYEntry.readFromJson(world, entryObj, category)
+                            if (entry != null) {
+                                lootEntries[key] = entry
+                            } else {
+                                logger.warn("Failed to load Ooh Shiny entry with key: $key")
+                            }
+                        } catch (e: Exception) {
+                            logger.warn("Failed to load Ooh Shiny entry for key $key in category $category", e)
+                        }
+                    }
+                }
+            } else {
+                // Old format: direct entries or entries object
+                val jsonObject = if (rootObject.has("entries")) {
+                    // Old format with "entries" wrapper
+                    if (rootObject.has("categories")) {
+                        val categoriesArray = rootObject.getAsJsonArray("categories")
+                        categories.clear()
+                        categoriesArray.forEach { categories.add(it.asString) }
+                    }
+                    rootObject.getAsJsonObject("entries")
+                } else {
+                    // Very old format - root is entries
+                    rootObject
+                }
+                
+                for ((key, entryElement) in jsonObject.entrySet()) {
+                    try {
+                        val entryObj = entryElement.asJsonObject
+                        
+                        if (server == null) {
+                            logger.warn("Cannot load Ooh Shiny entries without server context")
+                            continue
+                        }
+                        
+                        val dimensionStr = entryObj.get("dimension").asString
+                        val world = parseDimension(dimensionStr, server)
+                        
+                        if (world == null) {
+                            logger.warn("Could not find world for dimension: $dimensionStr")
+                            continue
+                        }
+                        
+                        val entry = OOHSHINYEntry.readFromJson(world, entryObj)
+                        if (entry != null) {
+                            lootEntries[key] = entry
+                            // Add category from entry to categories set
+                            categories.add(entry.category)
+                        } else {
+                            logger.warn("Failed to load Ooh Shiny entry with key: $key")
+                        }
+                    } catch (e: Exception) {
+                        logger.warn("Failed to load Ooh Shiny entry for key $key", e)
+                    }
+                }
+            }
+            
+            logger.info("Loaded ${lootEntries.size} Ooh Shiny entries across ${categories.size} categories")
         } catch (e: Exception) {
             logger.error("Failed to load Ooh Shiny storage file", e)
         }
@@ -151,18 +241,30 @@ object OOHSHINYState {
     
     /**
      * Writes all reward data to the JSON file on disk.
+     * Organizes entries by category for better readability.
      */
     private fun saveToDisk() {
         try {
-            val jsonObject = JsonObject()
+            val rootObject = JsonObject()
             
-            for ((key, entry) in lootEntries) {
-                jsonObject.add(key, entry.writeToJson())
+            // Group entries by category
+            val entriesByCategory = lootEntries.values.groupBy { it.category }
+            
+            // Save each category with its entries
+            for (category in categories.sorted()) {
+                val categoryEntries = entriesByCategory[category] ?: emptyList()
+                val categoryObject = JsonObject()
+                
+                for (entry in categoryEntries) {
+                    categoryObject.add(entry.getLocationKey(), entry.writeToJson())
+                }
+                
+                rootObject.add(category, categoryObject)
             }
             
             val writer = FileWriter(storageFile)
             val gson = GsonBuilder().setPrettyPrinting().create()
-            gson.toJson(jsonObject, writer)
+            gson.toJson(rootObject, writer)
             writer.close()
         } catch (e: Exception) {
             logger.error("Failed to save Ooh Shiny storage file", e)
