@@ -263,7 +263,45 @@ object OOHSHINYManager {
             "Player ${player.nameForScoreboard} claimed Ooh Shiny at ${dimension.value} [${position.x}, ${position.y}, ${position.z}]: ${itemNames}"
         )
         
+        // Check if the player has completed all loots in this category
+        checkAndExecuteCategoryCompletion(player, entry.category)
+        
         return true
+    }
+    
+    /**
+     * Checks if a player has claimed all loots in a specific category.
+     * If they have, executes all completion commands for that category.
+     */
+    private fun checkAndExecuteCategoryCompletion(player: ServerPlayerEntity, category: String) {
+        val state = OOHSHINYState
+        val categoryEntries = state.getEntriesByCategory(category)
+        
+        // Check if all entries in this category have been claimed by this player
+        val allClaimed = categoryEntries.isNotEmpty() && categoryEntries.values.all { entry ->
+            entry.hasPlayerClaimed(player.uuid)
+        }
+        
+        if (allClaimed) {
+            // Get completion commands for this category
+            val commands = state.getCategoryCompletionCommands(category)
+            
+            if (commands.isNotEmpty()) {
+                logger.info(
+                    "Player ${player.nameForScoreboard} completed all loots in category: $category. Executing ${commands.size} command(s)."
+                )
+                
+                // Execute each command from the console
+                val server = player.server
+                commands.forEach { command ->
+                    // Replace placeholder with player name
+                    val finalCommand = command.replace("{player}", player.nameForScoreboard)
+                    
+                    logger.info("Executing completion command: $finalCommand")
+                    server.commandManager.executeWithPrefix(server.commandSource, finalCommand)
+                }
+            }
+        }
     }
     
     /**
@@ -365,5 +403,33 @@ object OOHSHINYManager {
      */
     fun getCategories(server: MinecraftServer): Set<String> {
         return OOHSHINYState.getCategories()
+    }
+    
+    /**
+     * Adds a completion command for a category.
+     */
+    fun addCategoryCompletionCommand(category: String, command: String) {
+        OOHSHINYState.addCategoryCompletionCommand(category, command)
+    }
+    
+    /**
+     * Removes a completion command from a category.
+     */
+    fun removeCategoryCompletionCommand(category: String, index: Int): Boolean {
+        return OOHSHINYState.removeCategoryCompletionCommand(category, index)
+    }
+    
+    /**
+     * Gets completion commands for a category.
+     */
+    fun getCategoryCompletionCommands(category: String): List<String> {
+        return OOHSHINYState.getCategoryCompletionCommands(category)
+    }
+    
+    /**
+     * Gets all completion commands for all categories.
+     */
+    fun getAllCompletionCommands(): Map<String, List<String>> {
+        return OOHSHINYState.getAllCompletionCommands()
     }
 }

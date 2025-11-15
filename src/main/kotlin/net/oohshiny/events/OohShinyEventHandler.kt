@@ -95,12 +95,21 @@ object OOHSHINYEventHandler {
         }
         
         // Priority 3: Player tries to claim a reward here
-        if (LuckPermsUtil.hasPermission(player.commandSource, LuckPermsUtil.Permissions.OOHSHINY_CLAIM)) {
-            val success = OOHSHINYManager.claimLoot(player, dimension, position)
-            
-            // SUCCESS cancels the event and prevents normal block interactions (like opening chests)
-            // PASS allows normal block interactions to continue if there was no reward here
-            return if (success) ActionResult.SUCCESS else ActionResult.PASS
+        // First check if there's a loot entry at this location
+        val entry = OOHSHINYManager.getLootEntry(player.server, dimension, position)
+        
+        if (entry != null) {
+            // Check if player has permission to claim this category
+            if (LuckPermsUtil.hasClaimPermission(player, entry.category)) {
+                val success = OOHSHINYManager.claimLoot(player, dimension, position)
+                
+                // SUCCESS cancels the event and prevents normal block interactions (like opening chests)
+                return if (success) ActionResult.SUCCESS else ActionResult.FAIL
+            } else {
+                // Player doesn't have permission for this category
+                player.sendMessage(OOHSHINYMessages.noClaimPermission(player, entry.category), false)
+                return ActionResult.FAIL
+            }
         }
         
         // No special handling needed - allow normal Minecraft behavior

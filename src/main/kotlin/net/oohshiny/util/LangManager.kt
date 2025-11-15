@@ -146,6 +146,7 @@ object LangManager {
             "error.no_loot" to "<red>No loot at this location",
             "error.empty_hand" to "<red>You must hold an item in your main hand to create loot",
             "error.no_permission" to "<red>You don't have permission: {permission}",
+            "error.no_claim_permission" to "<red>You don't have permission to claim loots in the '{category}' category",
             "error.permission_service" to "<red>Permission service unavailable; contact an administrator",
             "error.block_protected" to "<red>This block is protected and cannot be broken!",
             "error.no_player" to "<red>No valid player found",

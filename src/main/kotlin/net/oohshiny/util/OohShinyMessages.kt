@@ -119,6 +119,11 @@ object OOHSHINYMessages {
         return createText(message)
     }
     
+    fun noClaimPermission(player: ServerPlayerEntity, category: String): Text {
+        val message = LangManager.getMessage("error.no_claim_permission", mapOf("category" to category))
+        return createText(message, player)
+    }
+    
     fun permissionServiceMissing(): Text {
         val message = LangManager.getMessage("error.permission_service")
         return createText(message)
@@ -132,7 +137,7 @@ object OOHSHINYMessages {
     
     fun lootListEntry(position: BlockPos, dimension: RegistryKey<World>, itemName: String, claimedCount: Int, source: ServerCommandSource): Text {
         val coordText = "[${position.x}, ${position.y}, ${position.z}]"
-        val hasTeleportPerm = LuckPermsUtil.hasPermission(source, LuckPermsUtil.Permissions.OOHSHINY_TELEPORT)
+        val hasTeleportPerm = LuckPermsUtil.hasPermission(source, LuckPermsUtil.Permissions.OOHSHINY_COMMAND_TELEPORT)
         
         val message = Text.literal("- ")
         

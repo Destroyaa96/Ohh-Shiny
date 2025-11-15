@@ -22,6 +22,7 @@ object OOHSHINYState {
     private val lootEntries: MutableMap<String, OOHSHINYEntry> = mutableMapOf()
     private val storageFile: File
     private val categories: MutableSet<String> = mutableSetOf("default")
+    private val categoryCompletionCommands: MutableMap<String, MutableList<String>> = mutableMapOf()
     
     init {
         val configDir = FabricLoader.getInstance().configDir.resolve("oohshiny").toFile()
@@ -94,6 +95,46 @@ object OOHSHINYState {
     fun getCategories(): Set<String> = categories.toSet()
     
     /**
+     * Adds a completion command for a specific category.
+     * Commands are executed when all loots in the category are claimed by a player.
+     */
+    fun addCategoryCompletionCommand(category: String, command: String) {
+        categoryCompletionCommands.getOrPut(category) { mutableListOf() }.add(command)
+        saveToDisk()
+    }
+    
+    /**
+     * Removes a completion command for a specific category by index.
+     */
+    fun removeCategoryCompletionCommand(category: String, index: Int): Boolean {
+        val commands = categoryCompletionCommands[category]
+        return if (commands != null && index >= 0 && index < commands.size) {
+            commands.removeAt(index)
+            if (commands.isEmpty()) {
+                categoryCompletionCommands.remove(category)
+            }
+            saveToDisk()
+            true
+        } else {
+            false
+        }
+    }
+    
+    /**
+     * Gets all completion commands for a specific category.
+     */
+    fun getCategoryCompletionCommands(category: String): List<String> {
+        return categoryCompletionCommands[category]?.toList() ?: emptyList()
+    }
+    
+    /**
+     * Gets all categories with their completion commands.
+     */
+    fun getAllCompletionCommands(): Map<String, List<String>> {
+        return categoryCompletionCommands.mapValues { it.value.toList() }
+    }
+    
+    /**
      * Returns all entries in a specific category.
      */
     fun getEntriesByCategory(category: String): Map<String, OOHSHINYEntry> {
@@ -142,6 +183,24 @@ object OOHSHINYState {
             val rootObject = JsonParser.parseReader(reader).asJsonObject
             reader.close()
             
+            // Load completion commands from old format if present (for migration)
+            if (rootObject.has("completionCommands")) {
+                val commandsObject = rootObject.getAsJsonObject("completionCommands")
+                categoryCompletionCommands.clear()
+                for ((category, commandsElement) in commandsObject.entrySet()) {
+                    if (commandsElement.isJsonArray) {
+                        val commandsList = mutableListOf<String>()
+                        commandsElement.asJsonArray.forEach { 
+                            commandsList.add(it.asString)
+                        }
+                        categoryCompletionCommands[category] = commandsList
+                    }
+                }
+            } else {
+                // Clear completion commands to reload from categories
+                categoryCompletionCommands.clear()
+            }
+            
             // Check if this is the new category-first format
             val isNewFormat = rootObject.entrySet().any { 
                 it.value.isJsonObject && it.value.asJsonObject.entrySet().any { entry ->
@@ -155,11 +214,27 @@ object OOHSHINYState {
                 
                 for ((category, categoryEntriesElement) in rootObject.entrySet()) {
                     if (!categoryEntriesElement.isJsonObject) continue
+                    // Skip the old completionCommands object if it exists
+                    if (category == "completionCommands") continue
                     
                     categories.add(category)
                     val categoryEntries = categoryEntriesElement.asJsonObject
                     
+                    // Load completion commands for this category if present
+                    if (categoryEntries.has("completionCommands")) {
+                        val commandsElement = categoryEntries.get("completionCommands")
+                        if (commandsElement.isJsonArray) {
+                            val commandsList = mutableListOf<String>()
+                            commandsElement.asJsonArray.forEach { 
+                                commandsList.add(it.asString)
+                            }
+                            categoryCompletionCommands[category] = commandsList
+                        }
+                    }
+                    
                     for ((key, entryElement) in categoryEntries.entrySet()) {
+                        // Skip the completionCommands field when loading entries
+                        if (key == "completionCommands") continue
                         try {
                             val entryObj = entryElement.asJsonObject
                             
@@ -250,11 +325,20 @@ object OOHSHINYState {
             // Group entries by category
             val entriesByCategory = lootEntries.values.groupBy { it.category }
             
-            // Save each category with its entries
+            // Save each category with its entries and completion commands
             for (category in categories.sorted()) {
                 val categoryEntries = entriesByCategory[category] ?: emptyList()
                 val categoryObject = JsonObject()
                 
+                // Add completion commands at the end of the category if they exist
+                val completionCommands = categoryCompletionCommands[category]
+                if (completionCommands != null && completionCommands.isNotEmpty()) {
+                    val commandsArray = JsonArray()
+                    completionCommands.forEach { commandsArray.add(it) }
+                    categoryObject.add("completionCommands", commandsArray)
+                }
+                
+                // Add loot entries
                 for (entry in categoryEntries) {
                     categoryObject.add(entry.getLocationKey(), entry.writeToJson())
                 }

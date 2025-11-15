@@ -20,18 +20,23 @@ import net.OOHSHINY.util.LuckPermsUtil
 import java.util.concurrent.ConcurrentHashMap
 import net.minecraft.util.Formatting
 import net.minecraft.command.CommandSource
+import com.mojang.brigadier.arguments.IntegerArgumentType
 
 /**
  * Command handler for /oohshiny and all its subcommands.
  * 
  * Available commands:
- * - /oohshiny set - Enter setup mode to create rewards
+ * - /oohshiny create <category> - Create a new category
+ * - /oohshiny set [category] - Enter setup mode to create rewards
  * - /oohshiny remove - Enter remove mode to delete rewards
- * - /oohshiny list - View all active reward locations
+ * - /oohshiny list [category] - View all active reward locations
  * - /oohshiny give - Give chest, pokeball, or player head items
  * - /oohshiny reload - Reload data from disk
  * - /oohshiny reset <player> - Reset a player's claim history
  * - /oohshiny clearall - Delete all rewards (requires confirmation)
+ * - /oohshiny completion add <category> <command> - Add a category completion command
+ * - /oohshiny completion remove <category> <index> - Remove a category completion command
+ * - /oohshiny completion list [category] - List category completion commands
  */
 object OOHSHINYCommand {
     
@@ -44,7 +49,7 @@ object OOHSHINYCommand {
         // /oohshiny create <category> - Create a new category
         root.then(
             literal("create")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_SET) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_COMMAND_CREATE) }
                 .then(
                     argument("category", StringArgumentType.word())
                         .executes { context ->
@@ -63,7 +68,7 @@ object OOHSHINYCommand {
         // /oohshiny set [category] - Enter setup mode with optional category
         root.then(
             literal("set")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_SET) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_COMMAND_SET) }
                 .executes { context ->
                     val player = context.source.playerOrThrow
                     OOHSHINYManager.enableSetupMode(player, "default")
@@ -103,7 +108,7 @@ object OOHSHINYCommand {
         // /oohshiny remove - Enter remove mode
         root.then(
             literal("remove")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_REMOVE) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_COMMAND_REMOVE) }
                 .executes { context ->
                     val player = context.source.playerOrThrow
                     OOHSHINYManager.enableRemoveMode(player)
@@ -114,7 +119,7 @@ object OOHSHINYCommand {
         // /oohshiny give - Give special items
         root.then(
             literal("give")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_GIVE) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_COMMAND_GIVE) }
                 .then(
                     // /oohshiny give chest <type>
                     literal("chest")
@@ -170,7 +175,7 @@ object OOHSHINYCommand {
         // /oohshiny list [category] - List all Ooh Shiny entries (optionally by category)
         root.then(
             literal("list")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_LIST) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_COMMAND_LIST) }
                 .executes { context ->
                     displayLootList(context.source, null)
                     1
@@ -193,7 +198,7 @@ object OOHSHINYCommand {
         // /oohshiny reload - Reload Ooh Shiny data and language files
         root.then(
             literal("reload")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_RELOAD) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_COMMAND_RELOAD) }
                 .executes { context ->
                     val server = context.source.server
                     val count = OOHSHINYManager.reloadData(server)
@@ -209,7 +214,7 @@ object OOHSHINYCommand {
         // /oohshiny reset <player> - Reset player's claims
         root.then(
             literal("reset")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_RESET) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_COMMAND_RESET) }
                 .then(
                     argument("target", GameProfileArgumentType.gameProfile())
                         .executes { context ->
@@ -236,7 +241,7 @@ object OOHSHINYCommand {
         // /oohshiny clearall - Clear all Ooh Shiny data (with confirmation)
         root.then(
             literal("clearall")
-                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_CLEARALL) }
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_COMMAND_CLEARALL) }
                 .executes { context ->
                     val playerName = context.source.name
                     val currentTime = System.currentTimeMillis()
@@ -264,6 +269,180 @@ object OOHSHINYCommand {
                     1
                 }
         )
+        
+        // /oohshiny completion - Manage category completion commands
+        root.then(
+            literal("completion")
+                .requires { LuckPermsUtil.hasPermission(it, LuckPermsUtil.Permissions.OOHSHINY_COMMAND_COMPLETION) }
+                .then(
+                    // /oohshiny completion add <category> <command>
+                    literal("add")
+                        .then(
+                            argument("category", StringArgumentType.word())
+                                .suggests { context, builder ->
+                                    val server = context.source.server
+                                    val categories = OOHSHINYManager.getCategories(server)
+                                    CommandSource.suggestMatching(categories, builder)
+                                }
+                                .then(
+                                    argument("command", StringArgumentType.greedyString())
+                                        .executes { context ->
+                                            val category = StringArgumentType.getString(context, "category")
+                                            val command = StringArgumentType.getString(context, "command")
+                                            val server = context.source.server
+                                            val categories = OOHSHINYManager.getCategories(server)
+                                            
+                                            // Validate category exists
+                                            if (!categories.contains(category)) {
+                                                context.source.sendError(
+                                                    Text.literal("Unknown category: $category. Use /oohshiny create <category> to create it first.")
+                                                        .formatted(Formatting.RED)
+                                                )
+                                                return@executes 0
+                                            }
+                                            
+                                            OOHSHINYManager.addCategoryCompletionCommand(category, command)
+                                            context.source.sendFeedback({
+                                                Text.literal("Added completion command for category '$category': $command")
+                                                    .formatted(Formatting.GREEN)
+                                            }, false)
+                                            context.source.sendFeedback({
+                                                Text.literal("Tip: Use {player} in the command to reference the player's name")
+                                                    .formatted(Formatting.GRAY)
+                                            }, false)
+                                            1
+                                        }
+                                )
+                        )
+                )
+                .then(
+                    // /oohshiny completion remove <category> <index>
+                    literal("remove")
+                        .then(
+                            argument("category", StringArgumentType.word())
+                                .suggests { context, builder ->
+                                    val server = context.source.server
+                                    val categories = OOHSHINYManager.getCategories(server)
+                                    CommandSource.suggestMatching(categories, builder)
+                                }
+                                .then(
+                                    argument("index", IntegerArgumentType.integer(0))
+                                        .executes { context ->
+                                            val category = StringArgumentType.getString(context, "category")
+                                            val index = IntegerArgumentType.getInteger(context, "index")
+                                            
+                                            val success = OOHSHINYManager.removeCategoryCompletionCommand(category, index)
+                                            if (success) {
+                                                context.source.sendFeedback({
+                                                    Text.literal("Removed completion command #$index from category '$category'")
+                                                        .formatted(Formatting.GREEN)
+                                                }, false)
+                                            } else {
+                                                context.source.sendError(
+                                                    Text.literal("Invalid index or no command at index $index for category '$category'")
+                                                        .formatted(Formatting.RED)
+                                                )
+                                            }
+                                            if (success) 1 else 0
+                                        }
+                                )
+                        )
+                )
+                .then(
+                    // /oohshiny completion list [category]
+                    literal("list")
+                        .executes { context ->
+                            displayCompletionCommands(context.source, null)
+                            1
+                        }
+                        .then(
+                            argument("category", StringArgumentType.word())
+                                .suggests { context, builder ->
+                                    val server = context.source.server
+                                    val categories = OOHSHINYManager.getCategories(server)
+                                    CommandSource.suggestMatching(categories, builder)
+                                }
+                                .executes { context ->
+                                    val category = StringArgumentType.getString(context, "category")
+                                    displayCompletionCommands(context.source, category)
+                                    1
+                                }
+                        )
+                )
+        )
+    }
+    
+    /**
+     * Displays completion commands, optionally filtered by category.
+     */
+    private fun displayCompletionCommands(source: ServerCommandSource, filterCategory: String?) {
+        val server = source.server
+        val categories = OOHSHINYManager.getCategories(server)
+        
+        // Validate category if specified
+        if (filterCategory != null && !categories.contains(filterCategory)) {
+            source.sendError(
+                Text.literal("Unknown category: $filterCategory")
+                    .formatted(Formatting.RED)
+            )
+            return
+        }
+        
+        val allCommands = OOHSHINYManager.getAllCompletionCommands()
+        
+        if (allCommands.isEmpty()) {
+            source.sendFeedback({ 
+                Text.literal("No completion commands configured")
+                    .formatted(Formatting.YELLOW)
+            }, false)
+            return
+        }
+        
+        if (filterCategory == null) {
+            // Show all completion commands grouped by category
+            source.sendFeedback({ 
+                Text.literal("Category Completion Commands:")
+                    .formatted(Formatting.GREEN, Formatting.BOLD)
+            }, false)
+            
+            allCommands.forEach { (category, commands) ->
+                if (commands.isNotEmpty()) {
+                    source.sendFeedback({
+                        Text.literal("\n[Category: $category]")
+                            .formatted(Formatting.AQUA, Formatting.BOLD)
+                    }, false)
+                    
+                    commands.forEachIndexed { index, command ->
+                        source.sendFeedback({
+                            Text.literal("  [$index] $command")
+                                .formatted(Formatting.WHITE)
+                        }, false)
+                    }
+                }
+            }
+        } else {
+            // Show only commands for specified category
+            val commands = allCommands[filterCategory]
+            
+            if (commands == null || commands.isEmpty()) {
+                source.sendFeedback({ 
+                    Text.literal("No completion commands for category: $filterCategory")
+                        .formatted(Formatting.YELLOW)
+                }, false)
+            } else {
+                source.sendFeedback({ 
+                    Text.literal("Completion commands for category '$filterCategory':")
+                        .formatted(Formatting.GREEN)
+                }, false)
+                
+                commands.forEachIndexed { index, command ->
+                    source.sendFeedback({
+                        Text.literal("  [$index] $command")
+                            .formatted(Formatting.WHITE)
+                    }, false)
+                }
+            }
+        }
     }
     
     /**
